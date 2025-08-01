@@ -1,0 +1,12 @@
+/node_modules
+/dist
+/build
+/logs
+/tmp
+/public
+/uploads
+/uploads/images
+/uploads/files
+/uploads/videos
+/uploads/audios
+/screenshots
