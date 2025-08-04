@@ -7,11 +7,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './controllers/auth.controller';
 import { AuthService } from './services/auth.service';
 import { JwtModule } from '@nestjs/jwt';
+import { TodoService } from './services/todo.service';
+import { Todo } from './config/todo.entity';
+import { TodoController } from './controllers/todo.controller';
+import { TodoOwnershipGuard } from './guards/todo-ownership.guard';
+import { RefreshToken } from './config/refresh-token.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(databaseConfig),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Todo, RefreshToken]),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-secret-key', // Trong production nên sử dụng environment variable
       signOptions: {
@@ -19,7 +24,7 @@ import { JwtModule } from '@nestjs/jwt';
       },
     }),
   ],
-  controllers: [AppController, AuthController],
-  providers: [AppService, AuthService],
+  controllers: [AppController, AuthController, TodoController],
+  providers: [AppService, AuthService, TodoService, TodoOwnershipGuard],
 })
 export class AppModule { }

@@ -1,14 +1,19 @@
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { User } from './user.entity';
+import { Todo } from './todo.entity';
+import { RefreshToken } from './refresh-token.entity';
 
-export const databaseConfig: TypeOrmModuleOptions = {
+const AppDataSource = new DataSource({
     type: 'postgres',
     host: process.env.POSTGRES_HOST || 'localhost',
     port: parseInt(process.env.POSTGRES_PORT || '5432') || 5432,
     username: process.env.POSTGRES_USER || 'postgres',
     password: process.env.POSTGRES_PASSWORD || 'postgres123',
     database: process.env.POSTGRES_DB || 'nextjs_nestjs_db',
-    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: process.env.NODE_ENV !== 'production', // Chỉ dùng trong development
+    entities: [User, Todo, RefreshToken],
+    migrations: [__dirname + '/../migrations/*.ts'],
+    synchronize: false,
     logging: process.env.NODE_ENV !== 'production',
-    autoLoadEntities: true,
-};
+});
+
+export default AppDataSource;

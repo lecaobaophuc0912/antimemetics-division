@@ -4,12 +4,15 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
-import { AuthService } from 'src/services/auth.service';
+import { UserRequest } from 'src/dto/user.dto';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly jwtService: JwtService
+  ) { }
 
   canActivate(
     context: ExecutionContext,
@@ -21,13 +24,21 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('No token provided');
     }
 
-    // Demo: Simple token validation
-    // In real app, you would validate JWT token here
-    if (this.authService.verifyToken(token)) {
+    try {
+      // Verify JWT token
+      const payload = this.jwtService.verify(token);
+      request.user = payload as UserRequest;
       return true;
+    } catch (error) {
+      // Handle different types of JWT errors
+      if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Token expired');
+      } else if (error.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('Invalid token');
+      } else {
+        throw new UnauthorizedException('Token verification failed');
+      }
     }
-
-    throw new UnauthorizedException('Invalid token');
   }
 
   private extractTokenFromHeader(request: any): string | undefined {

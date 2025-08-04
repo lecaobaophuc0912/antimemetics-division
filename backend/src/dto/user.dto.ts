@@ -100,3 +100,11 @@ export class RegisterResponseDto {
   };
   message: string;
 }
+
+export interface UserRequest {
+  sub: string;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+}

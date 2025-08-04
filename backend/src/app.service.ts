@@ -18,8 +18,11 @@ export class AppService {
       email: 'john@example.com',
       password: 'hashedpassword',
       role: 'user',
+      phone: '1234567890',
       createdAt: new Date(),
       updatedAt: new Date(),
+      todos: [],
+      refreshTokens: [],
     },
   ];
 
