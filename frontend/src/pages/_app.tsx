@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app';
 import { Orbitron } from "next/font/google";
 import Head from 'next/head';
 import { AuthProvider } from '../contexts/AuthContext';
+import { I18nProvider } from '../contexts/I18nContext';
 import './globals.css';
 
 const orbitron = Orbitron({
@@ -9,18 +10,20 @@ const orbitron = Orbitron({
   subsets: ["latin"],
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+function AppContent({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <Head>
-        <title>Antimemetics Division - Neural Interface</title>
-        <meta name="description" content="Quantum neural interface for consciousness synchronization" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <div className={`${orbitron.variable} antialiased`}>
         <Component {...pageProps} />
       </div>
     </AuthProvider>
+  );
+}
+
+export default function App(props: AppProps) {
+  return (
+    <I18nProvider>
+      <AppContent {...props} />
+    </I18nProvider>
   );
 } 

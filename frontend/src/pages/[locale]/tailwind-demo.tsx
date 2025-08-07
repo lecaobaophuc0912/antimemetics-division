@@ -1,5 +1,5 @@
 import React from 'react';
-import TailwindDemo from '../components/TailwindDemo';
+import TailwindDemo from '../../components/TailwindDemo';
 
 const TailwindDemoPage: React.FC = () => {
     return <TailwindDemo />;

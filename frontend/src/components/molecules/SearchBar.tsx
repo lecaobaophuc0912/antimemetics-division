@@ -1,6 +1,7 @@
 import React from 'react';
 import { SearchInput } from '../atoms/SearchInput';
 import { FilterChip } from '../atoms/FilterChip';
+import { useTodosTranslations, useCommonTranslations } from '../../hooks/useTranslations';
 
 interface SearchBarProps {
     searchValue: string;
@@ -19,11 +20,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     showFilters = true,
     className = '',
 }) => {
+    const t = useTodosTranslations();
+    const tc = useCommonTranslations();
+
     const filterOptions = [
-        { value: 'all', label: 'ALL TASKS', count: undefined },
-        { value: 'pending', label: 'PENDING', count: undefined },
-        { value: 'in-progress', label: 'PROCESSING', count: undefined },
-        { value: 'completed', label: 'COMPLETED', count: undefined },
+        { value: 'all', label: t('allTasks'), count: undefined },
+        { value: 'pending', label: tc('pending'), count: undefined },
+        { value: 'in-progress', label: tc('processing'), count: undefined },
+        { value: 'completed', label: tc('completed'), count: undefined },
     ];
 
     return (
@@ -31,7 +35,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             <SearchInput
                 value={searchValue}
                 onChange={onSearchChange}
-                placeholder="Search neural task matrix by identifier, parameters, or status..."
+                placeholder={t('searchTaskMatrix')}
                 className="w-full"
             />
 

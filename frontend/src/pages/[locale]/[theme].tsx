@@ -6,10 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 // Định nghĩa các theme có sẵn
 const themes = {
-  neural: {
+  memetics: {
     background: 'bg-gradient-to-br from-green-500 to-cyan-500',
     text: 'text-white',
-    name: 'NEURAL'
+    name: 'MEMETICS'
   },
   quantum: {
     background: 'bg-gradient-to-br from-pink-500 to-purple-500',

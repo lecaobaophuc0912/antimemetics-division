@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ProtectedRoute } from '../components/ProtectedRoute';
-import { useAuth } from '../contexts/AuthContext';
-import { todoService, Todo, TodoRequestDto, TodoQueryParams } from '../services';
-import { Navigation } from '../components/Navigation';
-import { TodoHeader, TodoList, TodoSearch } from '../components/organisms';
-import { TodoForm, ErrorMessage } from '../components/molecules';
+import { ProtectedRoute } from '../../components/ProtectedRoute';
+import { useAuth } from '../../contexts/AuthContext';
+import { todoService, Todo, TodoRequestDto, TodoQueryParams } from '../../services';
+import { Navigation } from '../../components/Navigation';
+import { TodoHeader, TodoList, TodoSearch } from '../../components/organisms';
+import { TodoForm, ErrorMessage } from '../../components/molecules';
+import { useTodosTranslations } from '../../hooks/useTranslations';
 
 export default function Todos() {
   const { user, logout } = useAuth();
+  const t = useTodosTranslations();
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,11 +38,11 @@ export default function Todos() {
       setTodos(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to synchronize neural tasks');
+      setError(err.message || t('failedToSynchronize'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   // Debounced search effect
   useEffect(() => {
@@ -60,7 +62,7 @@ export default function Todos() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchValue, activeFilter]);
+  }, [searchValue, activeFilter, fetchTodos]);
 
   const handleCreateTodo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +83,7 @@ export default function Todos() {
       setError(null);
       fetchTodos();
     } catch (err: any) {
-      setError(err.message || 'Failed to initialize neural task');
+      setError(err.message || t('failedToInitialize'));
     }
   };
 
@@ -100,7 +102,7 @@ export default function Todos() {
       setShowDetailTodo(true);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to access neural task data');
+      setError(err.message || t('failedToAccessData'));
     }
   };
 
@@ -120,7 +122,7 @@ export default function Todos() {
       setError(null);
       fetchTodos();
     } catch (err: any) {
-      setError(err.message || 'Failed to update neural task');
+      setError(err.message || t('failedToUpdate'));
     }
   };
 
@@ -130,7 +132,7 @@ export default function Todos() {
       setTodos(todos.filter(todo => todo.id !== id));
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to terminate neural task');
+      setError(err.message || t('failedToTerminate'));
     }
   };
 
@@ -198,8 +200,8 @@ export default function Todos() {
               setFormData={setFormData}
               onSubmit={handleCreateTodo}
               onCancel={handleCreateCancel}
-              title="Initialize Neural Task"
-              submitText="Initialize Task"
+              title={t('initializeNeuralTask')}
+              submitText={t('initializeTask')}
             />
           )}
 
@@ -210,8 +212,8 @@ export default function Todos() {
               setFormData={setFormData}
               onSubmit={handleUpdateTodo}
               onCancel={handleUpdateCancel}
-              title="Neural Task Details"
-              submitText="Update Task"
+              title={t('neuralTaskDetails')}
+              submitText={t('updateTask')}
             />
           )}
 

@@ -1,15 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { useAuth } from '../contexts/AuthContext';
-import { authService } from '../services';
+import { useAuth } from '../../contexts/AuthContext';
+import { authService } from '../../services';
 import Link from 'next/link';
-import { getMessage } from '@/services/handle-error';
+import { getMessage } from '../../services/handle-error';
 import Image from 'next/image';
+import { useAuthTranslations, useMetaTranslations, useCommonTranslations } from '../../hooks/useTranslations';
+import { useI18n } from '../../contexts/I18nContext';
 
 export default function Login() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading } = useAuth();
+  const { locale } = useI18n();
+  const t = useAuthTranslations();
+  const tm = useMetaTranslations();
+  const tc = useCommonTranslations();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -23,16 +29,16 @@ export default function Login() {
     if (router.query.message) {
       setMessage(router.query.message as string);
       // Clear the message from URL
-      router.replace('/login', undefined, { shallow: true });
+      router.replace(`/${locale}/login`, undefined, { shallow: true });
     }
-  }, [router.query.message, router]);
+  }, [router.query.message, router, locale]);
 
   useEffect(() => {
     // Redirect to home if already authenticated
     if (!isLoading && isAuthenticated) {
-      router.push('/');
+      router.push(`/${locale}`);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, locale]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,13 +60,13 @@ export default function Login() {
     // Validate individual field on blur
     if (name === 'email') {
       if (!value.trim()) {
-        setErrors(prev => ({ ...prev, email: 'Neural ID is required' }));
+        setErrors(prev => ({ ...prev, email: t('neuralIdRequired') }));
       } else if (!/\S+@\S+\.\S+/.test(value)) {
-        setErrors(prev => ({ ...prev, email: 'Invalid neural ID format' }));
+        setErrors(prev => ({ ...prev, email: t('invalidNeuralIdFormat') }));
       }
     } else if (name === 'password') {
       if (!value) {
-        setErrors(prev => ({ ...prev, password: 'Access code is required' }));
+        setErrors(prev => ({ ...prev, password: t('accessCodeRequired') }));
       }
     }
   };
@@ -69,13 +75,13 @@ export default function Login() {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Neural ID is required';
+      newErrors.email = t('neuralIdRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid neural ID format';
+      newErrors.email = t('invalidNeuralIdFormat');
     }
 
     if (!formData.password) {
-      newErrors.password = 'Access code is required';
+      newErrors.password = t('accessCodeRequired');
     }
 
     setErrors(newErrors);
@@ -101,9 +107,9 @@ export default function Login() {
       login(data.accessToken, data.user);
 
       // Redirect to home page
-      router.push('/');
+      router.push(`/${locale}`);
     } catch (error: any) {
-      const errorMessage = `DENIED: ${getMessage(error)}` || 'ACCESS DENIED';
+      const errorMessage = `${t('denied')}: ${getMessage(error)}` || t('accessDenied');
       setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -130,8 +136,10 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Neural Access - Antimemetics Division</title>
-        <meta name="description" content="Synchronize your consciousness with the quantum network" />
+        <title>{tm('loginTitle')}</title>
+        <meta name="description" content={tm('loginDescription')} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="min-h-screen cyber-grid bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -151,25 +159,25 @@ export default function Login() {
             <div className="mx-auto w-24 h-24 bg-gradient-to-r from-green-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl neon-glow overflow-hidden">
               <Image
                 src="/antimemetics-division-logo.png"
-                alt="Antimemetics Division Logo"
+                alt={tc('antimemeticsLogo')}
                 width={64}
                 height={64}
                 className="object-contain filter brightness-110 contrast-125"
               />
             </div>
             <h2 className="text-4xl font-bold text-green-400 mb-2 neon-glow">
-              NEURAL ACCESS
+              {t('neuralAccess')}
             </h2>
             <p className="text-cyan-300 text-lg terminal-text">
-              Synchronize your consciousness with the quantum network
+              {t('synchronizeConsciousness')}
             </p>
             <p className="mt-4 text-sm text-gray-500">
-              New consciousness detected?{' '}
+              {t('newConsciousnessDetected')}{' '}
               <Link
-                href="/register"
+                href={`/${locale}/register`}
                 className="font-medium text-cyan-400 hover:text-cyan-300 transition-colors duration-200"
               >
-                Initialize neural link
+                {t('initializeNeuralLink')}
               </Link>
             </p>
           </div>
@@ -191,17 +199,16 @@ export default function Login() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-green-300 mb-2">
-                  Neural ID
+                  {t('neuralId')}
                 </label>
                 <input
                   id="email"
                   name="email"
-
                   type="email"
                   autoComplete="email"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.email ? 'border-red-500' : 'border-green-600'
                     } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 terminal-text`}
-                  placeholder="Enter your neural ID"
+                  placeholder={t('enterNeuralId')}
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={handleInputBlur}
@@ -218,7 +225,7 @@ export default function Login() {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-green-300 mb-2">
-                  Access Code
+                  {t('accessCode')}
                 </label>
                 <input
                   id="password"
@@ -227,7 +234,7 @@ export default function Login() {
                   autoComplete="current-password"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.password ? 'border-red-500' : 'border-green-600'
                     } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 terminal-text`}
-                  placeholder="Enter your access code"
+                  placeholder={t('enterAccessCode')}
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={handleInputBlur}
@@ -262,10 +269,10 @@ export default function Login() {
                 {isSubmitting ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>SYNCHRONIZING...</span>
+                    <span>{t('synchronizing')}</span>
                   </div>
                 ) : (
-                  'ESTABLISH NEURAL LINK'
+                  t('establishNeuralLink')
                 )}
               </button>
             </form>

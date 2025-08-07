@@ -3,11 +3,11 @@ import { Input } from '../atoms/Input';
 import { Textarea } from '../atoms/Textarea';
 import { Select } from '../atoms/Select';
 import { Button } from '../atoms/Button';
-import type { TodoRequestDto } from '@/declaration';
+import { useTodosTranslations, useCommonTranslations } from '../../hooks/useTranslations';
 
 interface TodoFormProps {
-    formData: TodoRequestDto;
-    setFormData: (data: TodoRequestDto) => void;
+    formData: any;
+    setFormData: (data: any) => void;
     onSubmit: (e: React.FormEvent) => void;
     onCancel: () => void;
     title: string;
@@ -22,16 +22,19 @@ export const TodoForm: React.FC<TodoFormProps> = ({
     title,
     submitText,
 }) => {
+    const t = useTodosTranslations();
+    const tc = useCommonTranslations();
+
     const priorityOptions = [
-        { value: 'low', label: 'MINIMAL' },
-        { value: 'medium', label: 'STANDARD' },
-        { value: 'high', label: 'CRITICAL' }
+        { value: 'low', label: tc('minimal') },
+        { value: 'medium', label: tc('standard') },
+        { value: 'high', label: tc('critical') }
     ];
 
     const statusOptions = [
-        { value: 'pending', label: 'PENDING' },
-        { value: 'in-progress', label: 'PROCESSING' },
-        { value: 'completed', label: 'COMPLETED' }
+        { value: 'pending', label: tc('pending') },
+        { value: 'in-progress', label: tc('processing') },
+        { value: 'completed', label: tc('completed') }
     ];
 
     return (
@@ -43,8 +46,8 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                         type="text"
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="Enter neural task identifier"
-                        label="Task Identifier"
+                        placeholder={t('enterTaskIdentifier')}
+                        label={t('taskIdentifier')}
                         required
                     />
                     <Input
@@ -56,7 +59,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                                 setFormData({ ...formData, dueDate: date.toISOString().split('T')[0] });
                             }
                         }}
-                        label="Synchronization Date"
+                        label={t('synchronizationDate')}
                         required
                     />
                 </div>
@@ -64,8 +67,8 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                 <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Enter neural task parameters"
-                    label="Task Parameters"
+                    placeholder={t('enterTaskParameters')}
+                    label={t('taskParameters')}
                     required
                 />
 
@@ -74,13 +77,13 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                         value={formData.priority}
                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                         options={priorityOptions}
-                        label="Priority Level"
+                        label={t('priorityLevel')}
                     />
                     <Select
                         value={formData.status}
                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                         options={statusOptions}
-                        label="Processing Status"
+                        label={t('processingStatus')}
                     />
                 </div>
 
@@ -89,7 +92,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                         {submitText}
                     </Button>
                     <Button type="button" variant="secondary" onClick={onCancel}>
-                        TERMINATE
+                        {tc('terminate')}
                     </Button>
                 </div>
             </form>

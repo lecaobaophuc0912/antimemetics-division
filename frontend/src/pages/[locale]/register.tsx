@@ -2,12 +2,19 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useAuth } from '../contexts/AuthContext';
-import { authService } from '../services';
+import { useAuth } from '../../contexts/AuthContext';
+import { useI18n } from '../../contexts/I18nContext';
+import { authService } from '../../services';
+import Link from 'next/link';
+import { useAuthTranslations, useMetaTranslations, useCommonTranslations } from '../../hooks/useTranslations';
 
 export default function Register() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading } = useAuth();
+  const { locale } = useI18n();
+  const t = useAuthTranslations();
+  const tm = useMetaTranslations();
+  const tc = useCommonTranslations();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -20,9 +27,9 @@ export default function Register() {
   useEffect(() => {
     // Redirect to home if already authenticated
     if (!isLoading && isAuthenticated) {
-      router.push('/');
+      router.push(`/${locale}`);
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, locale]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,25 +50,25 @@ export default function Register() {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Consciousness identifier is required';
+      newErrors.name = t('consciousnessIdRequired');
     } else if (formData.name.length < 3) {
-      newErrors.name = 'Consciousness identifier must be at least 3 characters';
+      newErrors.name = t('consciousnessIdMinLength');
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Neural ID is required';
+      newErrors.email = t('neuralIdRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid neural ID format';
+      newErrors.email = t('invalidNeuralIdFormat');
     }
 
     if (!formData.password) {
-      newErrors.password = 'Access code is required';
+      newErrors.password = t('accessCodeRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Access code must be at least 6 characters';
+      newErrors.password = t('accessCodeMinLength');
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Access codes do not match';
+      newErrors.confirmPassword = t('accessCodesDoNotMatch');
     }
 
     setErrors(newErrors);
@@ -88,9 +95,9 @@ export default function Register() {
       login(data.token, data.user);
 
       // Redirect to home page with success message
-      router.push('/');
+      router.push(`/${locale}`);
     } catch (error: any) {
-      const errorMessage = error?.message || 'Neural link initialization failed. Please try again.';
+      const errorMessage = error?.message || t('neuralLinkInitializationFailed');
       setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -117,8 +124,10 @@ export default function Register() {
   return (
     <>
       <Head>
-        <title>Initialize Neural Link - Antimemetics Division</title>
-        <meta name="description" content="Create your consciousness profile in the quantum network" />
+        <title>{tm('registerTitle')}</title>
+        <meta name="description" content={tm('registerDescription')} />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="min-h-screen cyber-grid bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
@@ -138,26 +147,26 @@ export default function Register() {
             <div className="mx-auto w-24 h-24 bg-gradient-to-r from-cyan-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl neon-glow-accent overflow-hidden">
               <Image
                 src="/antimemetics-division-logo.png"
-                alt="Antimemetics Division Logo"
+                alt={tc('antimemeticsLogo')}
                 width={64}
                 height={64}
                 className="object-contain filter brightness-110 contrast-125"
               />
             </div>
             <h2 className="text-4xl font-bold text-cyan-400 mb-2 neon-glow-accent">
-              INITIALIZE NEURAL LINK
+              {t('initializeNeuralLinkTitle')}
             </h2>
             <p className="text-pink-300 text-lg terminal-text">
-              Create your consciousness profile in the quantum network
+              {t('createConsciousnessProfile')}
             </p>
             <p className="mt-4 text-sm text-gray-500">
-              Already synchronized?{' '}
-              <a
-                href="/login"
+              {t('alreadySynchronized')}{' '}
+              <Link
+                href={`/${locale}/login`}
                 className="font-medium text-cyan-400 hover:text-cyan-300 transition-colors duration-200"
               >
-                Access neural interface
-              </a>
+                {t('accessNeuralInterface')}
+              </Link>
             </p>
           </div>
 
@@ -166,7 +175,7 @@ export default function Register() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-cyan-300 mb-2">
-                  Consciousness Identifier
+                  {t('consciousnessIdentifier')}
                 </label>
                 <input
                   id="name"
@@ -175,7 +184,7 @@ export default function Register() {
                   autoComplete="name"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.name ? 'border-red-500' : 'border-cyan-600'
                     } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 terminal-text`}
-                  placeholder="Enter your consciousness identifier"
+                  placeholder={t('enterConsciousnessId')}
                   value={formData.name}
                   onChange={handleInputChange}
                 />
@@ -191,7 +200,7 @@ export default function Register() {
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-cyan-300 mb-2">
-                  Neural ID
+                  {t('neuralId')}
                 </label>
                 <input
                   id="email"
@@ -200,7 +209,7 @@ export default function Register() {
                   autoComplete="email"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.email ? 'border-red-500' : 'border-cyan-600'
                     } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 terminal-text`}
-                  placeholder="Enter your neural ID"
+                  placeholder={t('enterNeuralId')}
                   value={formData.email}
                   onChange={handleInputChange}
                 />
@@ -216,7 +225,7 @@ export default function Register() {
 
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-cyan-300 mb-2">
-                  Access Code
+                  {t('accessCode')}
                 </label>
                 <input
                   id="password"
@@ -225,7 +234,7 @@ export default function Register() {
                   autoComplete="new-password"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.password ? 'border-red-500' : 'border-cyan-600'
                     } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 terminal-text`}
-                  placeholder="Enter your access code"
+                  placeholder={t('enterAccessCode')}
                   value={formData.password}
                   onChange={handleInputChange}
                 />
@@ -241,7 +250,7 @@ export default function Register() {
 
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-cyan-300 mb-2">
-                  Confirm Access Code
+                  {t('confirmAccessCode')}
                 </label>
                 <input
                   id="confirmPassword"
@@ -250,7 +259,7 @@ export default function Register() {
                   autoComplete="new-password"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.confirmPassword ? 'border-red-500' : 'border-cyan-600'
                     } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200 terminal-text`}
-                  placeholder="Confirm your access code"
+                  placeholder={t('confirmAccessCodePlaceholder')}
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                 />
@@ -284,10 +293,10 @@ export default function Register() {
                 {isSubmitting ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>INITIALIZING...</span>
+                    <span>{t('initializing')}</span>
                   </div>
                 ) : (
-                  'ESTABLISH CONSCIOUSNESS LINK'
+                  t('establishConsciousnessLink')
                 )}
               </button>
             </form>
