@@ -3,6 +3,7 @@ import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigation } from '../components/Navigation';
 import apiService from "@/services/api";
+import Link from "next/link";
 
 export default function Home() {
   const { user, logout } = useAuth();
@@ -31,14 +32,13 @@ export default function Home() {
                 </span>
               </h2>
               <p className="text-xl text-cyan-300 max-w-3xl mx-auto leading-relaxed terminal-text">
-                Welcome to the neural interface. Your consciousness has been successfully synchronized with the quantum network.
-                Experience the convergence of human cognition and artificial intelligence through our advanced task management system.
+                No. This is not your first day.
               </p>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <a
+              <Link
                 href="/todos"
                 className="group px-8 py-4 bg-gradient-to-r from-green-600 to-cyan-600 text-white rounded-xl hover:from-green-700 hover:to-cyan-700 transition-all duration-300 font-semibold text-lg shadow-2xl hover:shadow-green-500/25 transform hover:-translate-y-1 flex items-center space-x-3 neon-glow"
               >
@@ -46,15 +46,15 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 <span>ACCESS NEURAL TASKS</span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="https://github.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-8 py-4 border-2 border-pink-500 text-pink-300 rounded-xl hover:border-pink-400 hover:text-pink-200 transition-all duration-300 font-semibold text-lg hover:bg-pink-900/50 transform hover:-translate-y-1 neon-glow-secondary"
               >
                 VIEW SOURCE MATRIX
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -102,41 +102,41 @@ export default function Home() {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {/* Theme options with cyberpunk names */}
-              <a href="/?theme=neural" className="glass border border-green-500/30 rounded-xl p-4 text-center hover:border-green-400 transition-all duration-300 group">
+              <Link href="/neural" className="glass border border-green-500/30 rounded-xl p-4 text-center hover:border-green-400 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-cyan-500 rounded-lg mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"></div>
                 <h4 className="text-green-400 font-semibold text-sm">NEURAL</h4>
                 <p className="text-green-300 text-xs">Primary Protocol</p>
-              </a>
+              </Link>
 
-              <a href="/?theme=quantum" className="glass-secondary border border-pink-500/30 rounded-xl p-4 text-center hover:border-pink-400 transition-all duration-300 group">
+              <Link href="/quantum" className="glass-secondary border border-pink-500/30 rounded-xl p-4 text-center hover:border-pink-400 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-purple-500 rounded-lg mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"></div>
                 <h4 className="text-pink-400 font-semibold text-sm">QUANTUM</h4>
                 <p className="text-pink-300 text-xs">Advanced Protocol</p>
-              </a>
+              </Link>
 
-              <a href="/?theme=cyber" className="glass-accent border border-cyan-500/30 rounded-xl p-4 text-center hover:border-cyan-400 transition-all duration-300 group">
+              <Link href="/cyber" className="glass-accent border border-cyan-500/30 rounded-xl p-4 text-center hover:border-cyan-400 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"></div>
                 <h4 className="text-cyan-400 font-semibold text-sm">CYBER</h4>
                 <p className="text-cyan-300 text-xs">Enhanced Protocol</p>
-              </a>
+              </Link>
 
-              <a href="/?theme=matrix" className="glass border border-yellow-500/30 rounded-xl p-4 text-center hover:border-yellow-400 transition-all duration-300 group">
+              <Link href="/matrix" className="glass border border-yellow-500/30 rounded-xl p-4 text-center hover:border-yellow-400 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"></div>
                 <h4 className="text-yellow-400 font-semibold text-sm">MATRIX</h4>
                 <p className="text-yellow-300 text-xs">Legacy Protocol</p>
-              </a>
+              </Link>
 
-              <a href="/?theme=void" className="glass border border-gray-500/30 rounded-xl p-4 text-center hover:border-gray-400 transition-all duration-300 group">
+              <Link href="/void" className="glass border border-gray-500/30 rounded-xl p-4 text-center hover:border-gray-400 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"></div>
                 <h4 className="text-gray-400 font-semibold text-sm">VOID</h4>
                 <p className="text-gray-300 text-xs">Minimal Protocol</p>
-              </a>
+              </Link>
 
-              <a href="/?theme=plasma" className="glass-secondary border border-purple-500/30 rounded-xl p-4 text-center hover:border-purple-400 transition-all duration-300 group">
+              <Link href="/plasma" className="glass-secondary border border-purple-500/30 rounded-xl p-4 text-center hover:border-purple-400 transition-all duration-300 group">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg mx-auto mb-3 group-hover:scale-110 transition-transform duration-300"></div>
                 <h4 className="text-purple-400 font-semibold text-sm">PLASMA</h4>
                 <p className="text-purple-300 text-xs">Experimental Protocol</p>
-              </a>
+              </Link>
             </div>
           </div>
 

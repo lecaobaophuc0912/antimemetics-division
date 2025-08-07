@@ -38,110 +38,12 @@ body {
   overflow-x: hidden;
 }
 
-/* Cyberpunk grid background */
+/* Cyberpunk grid background - static version */
 .cyber-grid {
   background-image:
     linear-gradient(rgba(0, 255, 65, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 255, 65, 0.1) 1px, transparent 1px);
   background-size: 50px 50px;
-  animation: grid-move 20s linear infinite;
-}
-
-@keyframes grid-move {
-  0% {
-    transform: translate(0, 0);
-  }
-
-  100% {
-    transform: translate(50px, 50px);
-  }
-}
-
-/* Custom animations for blob effects */
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-/* Glitch effect */
-@keyframes glitch {
-  0% {
-    transform: translate(0);
-  }
-
-  20% {
-    transform: translate(-2px, 2px);
-  }
-
-  40% {
-    transform: translate(-2px, -2px);
-  }
-
-  60% {
-    transform: translate(2px, 2px);
-  }
-
-  80% {
-    transform: translate(2px, -2px);
-  }
-
-  100% {
-    transform: translate(0);
-  }
-}
-
-.glitch {
-  animation: glitch 0.3s infinite;
-}
-
-/* Neon glow effects */
-.neon-glow {
-  text-shadow:
-    0 0 5px var(--primary),
-    0 0 10px var(--primary),
-    0 0 15px var(--primary),
-    0 0 20px var(--primary);
-}
-
-.neon-glow-secondary {
-  text-shadow:
-    0 0 5px var(--secondary),
-    0 0 10px var(--secondary),
-    0 0 15px var(--secondary),
-    0 0 20px var(--secondary);
-}
-
-.neon-glow-accent {
-  text-shadow:
-    0 0 5px var(--accent),
-    0 0 10px var(--accent),
-    0 0 15px var(--accent),
-    0 0 20px var(--accent);
 }
 
 /* Smooth scrolling */
@@ -191,28 +93,23 @@ html {
   box-shadow: var(--glow-accent);
 }
 
-/* Gradient text animation */
-.gradient-text {
-  background: linear-gradient(-45deg, var(--primary), var(--secondary), var(--accent), var(--warning));
-  background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Neon glow effects - reduced intensity */
+.neon-glow {
+  text-shadow:
+    0 0 3px var(--primary),
+    0 0 6px var(--primary);
 }
 
-@keyframes gradient {
-  0% {
-    background-position: 0% 50%;
-  }
+.neon-glow-secondary {
+  text-shadow:
+    0 0 3px var(--secondary),
+    0 0 6px var(--secondary);
+}
 
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+.neon-glow-accent {
+  text-shadow:
+    0 0 3px var(--accent),
+    0 0 6px var(--accent);
 }
 
 /* Terminal effect */
@@ -228,8 +125,12 @@ html {
     transform: translateY(-100%);
   }
 
-  100% {
+  50% {
     transform: translateY(100vh);
+  }
+
+  100% {
+    transform: translateY(-100%);
   }
 }
 
@@ -240,50 +141,7 @@ html {
   width: 100%;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  animation: scan 3s linear infinite;
+  animation: scan 6s linear infinite;
   pointer-events: none;
   z-index: 9999;
-}
-
-/* Data corruption effect */
-@keyframes corruption {
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.3;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.corruption {
-  animation: corruption 0.1s infinite;
-}
-
-/* Holographic effect */
-.holographic {
-  background: linear-gradient(45deg,
-      transparent 30%,
-      rgba(0, 255, 65, 0.1) 50%,
-      transparent 70%);
-  background-size: 200% 200%;
-  animation: hologram 3s ease-in-out infinite;
-}
-
-@keyframes hologram {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
 }

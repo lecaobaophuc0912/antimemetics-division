@@ -6,35 +6,35 @@ import { useAuth } from '../contexts/AuthContext';
 
 // Định nghĩa các theme có sẵn
 const themes = {
-  blue: {
-    background: 'bg-blue-500',
+  neural: {
+    background: 'bg-gradient-to-br from-green-500 to-cyan-500',
     text: 'text-white',
-    name: 'Blue'
+    name: 'NEURAL'
   },
-  green: {
-    background: 'bg-green-500', 
+  quantum: {
+    background: 'bg-gradient-to-br from-pink-500 to-purple-500',
     text: 'text-white',
-    name: 'Green'
+    name: 'QUANTUM'
   },
-  red: {
-    background: 'bg-red-500',
-    text: 'text-white', 
-    name: 'Red'
-  },
-  purple: {
-    background: 'bg-purple-500',
+  cyber: {
+    background: 'bg-gradient-to-br from-cyan-500 to-blue-500',
     text: 'text-white',
-    name: 'Purple'
+    name: 'CYBER'
   },
-  orange: {
-    background: 'bg-orange-500',
+  matrix: {
+    background: 'bg-gradient-to-br from-yellow-500 to-orange-500',
     text: 'text-white',
-    name: 'Orange'
+    name: 'MATRIX'
   },
-  pink: {
-    background: 'bg-pink-500',
+  void: {
+    background: 'bg-gradient-to-br from-gray-500 to-gray-700',
     text: 'text-white',
-    name: 'Pink'
+    name: 'VOID'
+  },
+  plasma: {
+    background: 'bg-gradient-to-br from-purple-500 to-pink-500',
+    text: 'text-white',
+    name: 'PLASMA'
   }
 };
 
@@ -75,7 +75,7 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
             <h1 className="text-4xl font-bold mb-6">
               Theme: {currentTheme.name}
             </h1>
-            
+
             <div className="mb-8">
               <Image
                 className="mx-auto mb-6"
@@ -94,11 +94,10 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
                   <button
                     key={themeName}
                     onClick={() => router.push(`/${themeName}`)}
-                    className={`px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 ${
-                      themeName === theme 
-                        ? 'ring-4 ring-white ring-opacity-50 font-bold' 
-                        : 'bg-black bg-opacity-20 hover:bg-opacity-30'
-                    }`}
+                    className={`px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 ${themeName === theme
+                      ? 'ring-4 ring-white ring-opacity-50 font-bold'
+                      : 'bg-black bg-opacity-20 hover:bg-opacity-30'
+                      }`}
                   >
                     {themeConfig.name}
                   </button>
@@ -113,7 +112,7 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
               >
                 ← Về trang chủ
               </button>
-              
+
               <div className="text-sm opacity-80">
                 <p>URL hiện tại: /{theme}</p>
                 <p>Background: {currentTheme.background}</p>
@@ -130,7 +129,7 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
 export const getStaticPaths: GetStaticPaths = async () => {
   console.log('🔍 getStaticPaths đang chạy....');
 
-  
+
   const paths = Object.keys(themes).map((theme) => ({
     params: { theme },
   }));
@@ -146,9 +145,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
 // Tạo static props cho mỗi theme
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   console.log('🎯 getStaticProps đang chạy với params:', params);
-  
+
   const theme = params?.theme as string;
-  
+  console.log('🔍 theme:', theme);
   if (!theme || !themes[theme as keyof typeof themes]) {
     console.log('❌ Theme không tồn tại:', theme);
     return {
@@ -157,7 +156,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }
 
   console.log('✅ Theme hợp lệ:', theme);
-  
+
   return {
     props: {
       theme,
