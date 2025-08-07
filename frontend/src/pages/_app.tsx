@@ -3,6 +3,7 @@ import { Orbitron } from "next/font/google";
 import Head from 'next/head';
 import { AuthProvider } from '../contexts/AuthContext';
 import { I18nProvider } from '../contexts/I18nContext';
+import { LocaleDebugger } from '../components/LocaleDebugger';
 import './globals.css';
 
 const orbitron = Orbitron({

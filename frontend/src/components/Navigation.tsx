@@ -18,6 +18,11 @@ export function Navigation({ user, logout }: NavigationProps) {
   const t = useNavigationTranslations();
   const tc = useCommonTranslations();
 
+  // Ensure locale is valid before rendering
+  if (!locale || !['en', 'vi'].includes(locale)) {
+    return null; // Don't render until locale is properly set
+  }
+
   const isActive = (path: string) => {
     return router.pathname === `/${locale}${path}` || router.pathname === path;
   };

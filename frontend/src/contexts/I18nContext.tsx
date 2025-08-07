@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { NextIntlClientProvider } from 'next-intl';
 import { locales, defaultLocale, loadMessages } from '../i18n';
+import { getStoredLocale, storeLocale, isValidLocale } from '../utils/locale';
 
 interface I18nContextType {
     locale: string;
@@ -12,7 +13,7 @@ const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export function useI18n() {
     const context = useContext(I18nContext);
-    if (!context) {
+    if (context === undefined) {
         throw new Error('useI18n must be used within an I18nProvider');
     }
     return context;
@@ -27,17 +28,78 @@ export function I18nProvider({ children }: I18nProviderProps) {
     const [locale, setLocaleState] = useState<string>(defaultLocale);
     const [messages, setMessages] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [hasInitialized, setHasInitialized] = useState(false);
 
-    // Get locale from URL or use default
+    // Ensure locale is always valid
+    const safeLocale = locales.includes(locale as any) ? locale : defaultLocale;
+
+    // Initialize locale from URL, localStorage, or default
     useEffect(() => {
+        if (hasInitialized) return;
+
+        const getInitialLocale = () => {
+            // First priority: URL locale
+            const pathLocale = router.asPath.split('/')[1];
+            if (locales.includes(pathLocale as any)) {
+                return pathLocale;
+            }
+
+            // Second priority: stored locale
+            const storedLocale = getStoredLocale();
+            if (storedLocale && locales.includes(storedLocale as any)) {
+                return storedLocale;
+            }
+
+            // Fallback: default locale
+            return defaultLocale;
+        };
+
+        const initialLocale = getInitialLocale();
+        setLocaleState(initialLocale);
+        setHasInitialized(true);
+
+        // If URL doesn't match the determined locale, redirect
+        const pathLocale = router.asPath.split('/')[1];
+        if (!locales.includes(pathLocale as any) || pathLocale !== initialLocale) {
+            // Handle both actual locale codes and dynamic route parameters like [locale]
+            let currentPath = router.asPath;
+
+            // Remove locale from path if it exists
+            if (locales.includes(pathLocale as any)) {
+                // If the first segment is a valid locale, remove it
+                currentPath = router.asPath.replace(/^\/[a-z]{2}/, '') || '/';
+            } else if (pathLocale && pathLocale.startsWith('[') && pathLocale.endsWith(']')) {
+                // If the first segment is a dynamic route parameter like [locale], remove it
+                currentPath = router.asPath.replace(/^\/\[[^\]]+\]/, '') || '/';
+            }
+
+            const newPath = `/${initialLocale}${currentPath}`;
+            console.log('🔍 newPath:', newPath);
+            console.log('🔍 initialLocale:', initialLocale);
+            console.log('🔍 pathLocale:', pathLocale);
+            console.log('🔍 locales:', locales);
+            console.log('🔍 defaultLocale:', defaultLocale);
+            router.replace(newPath);
+        }
+    }, [router.asPath, hasInitialized, router]);
+
+    // Update locale when URL changes (after initialization)
+    useEffect(() => {
+        if (!hasInitialized) return;
+
         const getLocaleFromPath = () => {
             const pathLocale = router.asPath.split('/')[1];
             return locales.includes(pathLocale as any) ? pathLocale : defaultLocale;
         };
 
         const currentLocale = getLocaleFromPath();
-        setLocaleState(currentLocale);
-    }, [router.asPath]);
+        console.log('🔍 currentLocale:', currentLocale);
+        console.log('🔍 locale:', locale);
+        if (currentLocale !== locale) {
+            setLocaleState(currentLocale);
+            storeLocale(currentLocale);
+        }
+    }, [router.asPath, hasInitialized, locale]);
 
     // Load messages when locale changes
     useEffect(() => {
@@ -57,14 +119,28 @@ export function I18nProvider({ children }: I18nProviderProps) {
     }, [locale]);
 
     const setLocale = (newLocale: string) => {
-        if (!locales.includes(newLocale as any)) {
+        if (!isValidLocale(newLocale)) {
             console.warn(`Locale ${newLocale} is not supported`);
             return;
         }
 
+        // Store the preference
+        storeLocale(newLocale);
+
         // Update URL with new locale
         const currentPath = router.asPath;
-        const pathWithoutLocale = currentPath.replace(/^\/[a-z]{2}/, '') || '/';
+        const pathLocale = currentPath.split('/')[1];
+
+        // Handle both actual locale codes and dynamic route parameters like [locale]
+        let pathWithoutLocale = currentPath;
+        if (locales.includes(pathLocale as any)) {
+            // If the first segment is a valid locale, remove it
+            pathWithoutLocale = currentPath.replace(/^\/[a-z]{2}/, '') || '/';
+        } else if (pathLocale && pathLocale.startsWith('[') && pathLocale.endsWith(']')) {
+            // If the first segment is a dynamic route parameter like [locale], remove it
+            pathWithoutLocale = currentPath.replace(/^\/\[[^\]]+\]/, '') || '/';
+        }
+
         const newPath = `/${newLocale}${pathWithoutLocale}`;
 
         router.push(newPath);
@@ -82,9 +158,9 @@ export function I18nProvider({ children }: I18nProviderProps) {
     }
 
     return (
-        <I18nContext.Provider value={{ locale, setLocale }}>
+        <I18nContext.Provider value={{ locale: safeLocale, setLocale }}>
             <NextIntlClientProvider
-                locale={locale}
+                locale={safeLocale}
                 messages={messages}
                 timeZone="Asia/Ho_Chi_Minh"
             >

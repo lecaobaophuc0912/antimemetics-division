@@ -1,8 +1,9 @@
 import { useRouter } from 'next/router';
 import { GetStaticPaths, GetStaticProps } from 'next';
 import Image from "next/image";
-import { ProtectedRoute } from '../components/ProtectedRoute';
-import { useAuth } from '../contexts/AuthContext';
+import { ProtectedRoute } from '../../components/ProtectedRoute';
+import { useAuth } from '../../contexts/AuthContext';
+import { locales } from '../../i18n';
 
 // Định nghĩa các theme có sẵn
 const themes = {
@@ -39,6 +40,7 @@ const themes = {
 };
 
 interface ThemePageProps {
+  locale: string;
   theme: string;
   themeConfig: {
     background: string;
@@ -47,7 +49,7 @@ interface ThemePageProps {
   };
 }
 
-export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
+export default function ThemePage({ locale, theme, themeConfig }: ThemePageProps) {
   const router = useRouter();
   const { user, logout } = useAuth();
 
@@ -93,7 +95,7 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
                 {Object.entries(themes).map(([themeName, themeConfig]) => (
                   <button
                     key={themeName}
-                    onClick={() => router.push(`/${themeName}`)}
+                    onClick={() => router.push(`/${locale}/${themeName}`)}
                     className={`px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 ${themeName === theme
                       ? 'ring-4 ring-white ring-opacity-50 font-bold'
                       : 'bg-black bg-opacity-20 hover:bg-opacity-30'
@@ -107,7 +109,7 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
 
             <div className="space-y-4">
               <button
-                onClick={() => router.push('/')}
+                onClick={() => router.push(`/${locale}`)}
                 className="px-6 py-3 bg-black bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all duration-200 hover:scale-105"
               >
                 ← Về trang chủ
@@ -125,29 +127,46 @@ export default function ThemePage({ theme, themeConfig }: ThemePageProps) {
   );
 }
 
-// Tạo static paths cho tất cả các theme
+// Tạo static paths cho tất cả các locale và theme combinations
 export const getStaticPaths: GetStaticPaths = async () => {
   console.log('🔍 getStaticPaths đang chạy....');
 
-
-  const paths = Object.keys(themes).map((theme) => ({
-    params: { theme },
-  }));
+  // Generate paths for all combinations of locales and themes
+  const paths = [];
+  for (const locale of locales) {
+    for (const theme of Object.keys(themes)) {
+      paths.push({
+        params: { locale, theme },
+      });
+    }
+  }
 
   console.log('📁 Generated paths:', paths);
 
   return {
     paths,
-    fallback: false, // Trả về 404 cho các theme không tồn tại
+    fallback: false, // Trả về 404 cho các locale/theme không tồn tại
   };
 };
 
-// Tạo static props cho mỗi theme
+// Tạo static props cho mỗi locale/theme combination
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   console.log('🎯 getStaticProps đang chạy với params:', params);
 
+  const locale = params?.locale as string;
   const theme = params?.theme as string;
-  console.log('🔍 theme:', theme);
+
+  console.log('🔍 locale:', locale, 'theme:', theme);
+
+  // Validate locale
+  if (!locale || !locales.includes(locale as any)) {
+    console.log('❌ Locale không tồn tại:', locale);
+    return {
+      notFound: true,
+    };
+  }
+
+  // Validate theme
   if (!theme || !themes[theme as keyof typeof themes]) {
     console.log('❌ Theme không tồn tại:', theme);
     return {
@@ -155,10 +174,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     };
   }
 
-  console.log('✅ Theme hợp lệ:', theme);
+  console.log('✅ Locale và Theme hợp lệ:', locale, theme);
 
   return {
     props: {
+      locale,
       theme,
       themeConfig: themes[theme as keyof typeof themes],
     },
