@@ -10,7 +10,7 @@ import { RefreshToken } from "src/config/refresh-token.entity";
 import { RefreshTokenDto, RefreshTokenResponseDto } from "src/dto/refresh-token.dto";
 import { randomBytes, createHash } from 'crypto';
 
-export const EXPIRED_TIME_ACCESS_TOKEN = '5s';
+export const EXPIRED_TIME_ACCESS_TOKEN = '15m';
 @Injectable()
 export class AuthService {
     constructor(

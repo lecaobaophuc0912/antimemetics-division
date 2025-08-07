@@ -74,7 +74,7 @@ export class TodoService {
             // Search functionality
             if (search) {
                 queryBuilder.andWhere(
-                    '(todo.title LIKE :search OR todo.description LIKE :search OR todo.code LIKE :search)',
+                    '(LOWER(todo.title) LIKE LOWER(:search) OR LOWER(todo.description) LIKE LOWER(:search) OR LOWER(todo.code) LIKE LOWER(:search))',
                     { search: `%${search}%` }
                 );
             }

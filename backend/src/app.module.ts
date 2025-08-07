@@ -12,6 +12,7 @@ import { Todo } from './config/todo.entity';
 import { TodoController } from './controllers/todo.controller';
 import { TodoOwnershipGuard } from './guards/todo-ownership.guard';
 import { RefreshToken } from './config/refresh-token.entity';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { RefreshToken } from './config/refresh-token.entity';
     }),
   ],
   controllers: [AppController, AuthController, TodoController],
-  providers: [AppService, AuthService, TodoService, TodoOwnershipGuard],
+  providers: [AppService, AuthService, TodoService, TodoOwnershipGuard, LoggingInterceptor],
 })
 export class AppModule { }
