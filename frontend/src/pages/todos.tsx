@@ -35,7 +35,7 @@ export default function Todos() {
       setTodos(response.data);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch todos');
+      setError(err.message || 'Failed to synchronize neural tasks');
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export default function Todos() {
       setError(null);
       fetchTodos();
     } catch (err: any) {
-      setError(err.message || 'Failed to create todo');
+      setError(err.message || 'Failed to initialize neural task');
     }
   };
 
@@ -96,7 +96,7 @@ export default function Todos() {
       setShowDetailTodo(true);
       setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch todo');
+      setError(err.message || 'Failed to access neural task data');
     }
   };
 
@@ -106,25 +106,27 @@ export default function Todos() {
 
   const handleUpdateTodo = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!todoId) return;
     try {
-      const updatedTodo = await apiService.updateTodo(todoId!, formData);
-      setTodos(todos.map((todo) => todo.id === todoId ? updatedTodo : todo));
+      await apiService.updateTodo(todoId, {
+        ...formData,
+        dueDate: new Date(formData.dueDate).toISOString()
+      });
       setShowDetailTodo(false);
       setError(null);
       fetchTodos();
     } catch (err: any) {
-      setError(err.message || 'Failed to update todo');
+      setError(err.message || 'Failed to update neural task');
     }
   };
 
   const handleDeleteTodo = async (id: string) => {
     try {
       await apiService.deleteTodo(id);
-      setTodos(todos.filter((todo) => todo.id !== id));
+      setTodos(todos.filter(todo => todo.id !== id));
       setError(null);
-      fetchTodos();
     } catch (err: any) {
-      setError(err.message || 'Failed to delete todo');
+      setError(err.message || 'Failed to terminate neural task');
     }
   };
 
@@ -158,7 +160,10 @@ export default function Todos() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="min-h-screen cyber-grid bg-gradient-to-br from-black via-gray-900 to-black relative">
+        {/* Scanning line effect */}
+        <div className="scan-line"></div>
+
         {/* Navigation */}
         <Navigation user={user} logout={logout} />
 
@@ -189,8 +194,8 @@ export default function Todos() {
               setFormData={setFormData}
               onSubmit={handleCreateTodo}
               onCancel={handleCreateCancel}
-              title="Create New Todo"
-              submitText="Create Todo"
+              title="Initialize Neural Task"
+              submitText="Initialize Task"
             />
           )}
 
@@ -201,8 +206,8 @@ export default function Todos() {
               setFormData={setFormData}
               onSubmit={handleUpdateTodo}
               onCancel={handleUpdateCancel}
-              title="Detail Todo"
-              submitText="Update Todo"
+              title="Neural Task Details"
+              submitText="Update Task"
             />
           )}
 
@@ -216,11 +221,11 @@ export default function Todos() {
           />
         </main>
 
-        {/* Background Decorations */}
-        <div className="fixed inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        {/* Animated background elements */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-green-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-cyan-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
         </div>
       </div>
     </ProtectedRoute>

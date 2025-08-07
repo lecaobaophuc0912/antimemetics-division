@@ -20,10 +20,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     className = '',
 }) => {
     const filterOptions = [
-        { value: 'all', label: 'All', count: undefined },
-        { value: 'pending', label: 'Pending', count: undefined },
-        { value: 'in-progress', label: 'In Progress', count: undefined },
-        { value: 'completed', label: 'Completed', count: undefined },
+        { value: 'all', label: 'ALL TASKS', count: undefined },
+        { value: 'pending', label: 'PENDING', count: undefined },
+        { value: 'in-progress', label: 'PROCESSING', count: undefined },
+        { value: 'completed', label: 'COMPLETED', count: undefined },
     ];
 
     return (
@@ -31,7 +31,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             <SearchInput
                 value={searchValue}
                 onChange={onSearchChange}
-                placeholder="Search by title, description, or status..."
+                placeholder="Search neural task matrix by identifier, parameters, or status..."
                 className="w-full"
             />
 

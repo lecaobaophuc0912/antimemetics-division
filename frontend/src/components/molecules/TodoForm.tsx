@@ -23,28 +23,28 @@ export const TodoForm: React.FC<TodoFormProps> = ({
     submitText,
 }) => {
     const priorityOptions = [
-        { value: 'low', label: 'Low' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'high', label: 'High' }
+        { value: 'low', label: 'MINIMAL' },
+        { value: 'medium', label: 'STANDARD' },
+        { value: 'high', label: 'CRITICAL' }
     ];
 
     const statusOptions = [
-        { value: 'pending', label: 'Pending' },
-        { value: 'in-progress', label: 'In Progress' },
-        { value: 'completed', label: 'Completed' }
+        { value: 'pending', label: 'PENDING' },
+        { value: 'in-progress', label: 'PROCESSING' },
+        { value: 'completed', label: 'COMPLETED' }
     ];
 
     return (
-        <div className="mb-8 bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 shadow-2xl">
-            <h3 className="text-xl font-bold text-white mb-4">{title}</h3>
+        <div className="mb-8 glass border border-green-500/30 rounded-2xl p-6 shadow-2xl">
+            <h3 className="text-xl font-bold text-green-400 mb-4 neon-glow">{title}</h3>
             <form onSubmit={onSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
                         type="text"
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="Enter todo title"
-                        label="Title"
+                        placeholder="Enter neural task identifier"
+                        label="Task Identifier"
                         required
                     />
                     <Input
@@ -56,7 +56,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                                 setFormData({ ...formData, dueDate: date.toISOString().split('T')[0] });
                             }
                         }}
-                        label="Due Date"
+                        label="Synchronization Date"
                         required
                     />
                 </div>
@@ -64,8 +64,8 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                 <Textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Enter todo description"
-                    label="Description"
+                    placeholder="Enter neural task parameters"
+                    label="Task Parameters"
                     required
                 />
 
@@ -74,13 +74,13 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                         value={formData.priority}
                         onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
                         options={priorityOptions}
-                        label="Priority"
+                        label="Priority Level"
                     />
                     <Select
                         value={formData.status}
                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                         options={statusOptions}
-                        label="Status"
+                        label="Processing Status"
                     />
                 </div>
 
@@ -89,7 +89,7 @@ export const TodoForm: React.FC<TodoFormProps> = ({
                         {submitText}
                     </Button>
                     <Button type="button" variant="secondary" onClick={onCancel}>
-                        Cancel
+                        TERMINATE
                     </Button>
                 </div>
             </form>

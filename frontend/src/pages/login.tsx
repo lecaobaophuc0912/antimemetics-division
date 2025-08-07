@@ -51,13 +51,13 @@ export default function Login() {
     // Validate individual field on blur
     if (name === 'email') {
       if (!value.trim()) {
-        setErrors(prev => ({ ...prev, email: 'Email is required' }));
+        setErrors(prev => ({ ...prev, email: 'Neural ID is required' }));
       } else if (!/\S+@\S+\.\S+/.test(value)) {
-        setErrors(prev => ({ ...prev, email: 'Email is invalid' }));
+        setErrors(prev => ({ ...prev, email: 'Invalid neural ID format' }));
       }
     } else if (name === 'password') {
       if (!value) {
-        setErrors(prev => ({ ...prev, password: 'Password is required' }));
+        setErrors(prev => ({ ...prev, password: 'Access code is required' }));
       }
     }
   };
@@ -66,13 +66,13 @@ export default function Login() {
     const newErrors: { [key: string]: string } = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Neural ID is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Invalid neural ID format';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = 'Access code is required';
     }
 
     setErrors(newErrors);
@@ -101,7 +101,7 @@ export default function Login() {
       router.push('/');
     } catch (error: any) {
       // Handle error object from API service
-      const errorMessage = error?.message || 'Login failed. Please try again.';
+      const errorMessage = error?.message || 'Neural synchronization failed. Please try again.';
       setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -111,10 +111,10 @@ export default function Login() {
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen cyber-grid bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center">
         <div className="relative">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin animation-delay-2000"></div>
+          <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin neon-glow"></div>
+          <div className="absolute inset-0 w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin animation-delay-2000 neon-glow-accent"></div>
         </div>
       </div>
     );
@@ -128,46 +128,49 @@ export default function Login() {
   return (
     <>
       <Head>
-        <title>Login - Next.js App</title>
-        <meta name="description" content="Sign in to your account" />
+        <title>Neural Access - Antimemetics Division</title>
+        <meta name="description" content="Synchronize your consciousness with the quantum network" />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="min-h-screen cyber-grid bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Scanning line effect */}
+        <div className="scan-line"></div>
+
         {/* Background Decorations */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
           <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="max-w-md w-full space-y-8 relative z-10">
           {/* Header */}
           <div className="text-center">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-green-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl neon-glow">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h2 className="text-4xl font-bold text-white mb-2">
-              Welcome Back
+            <h2 className="text-4xl font-bold text-green-400 mb-2 neon-glow">
+              NEURAL ACCESS
             </h2>
-            <p className="text-gray-400 text-lg">
-              Sign in to your account to continue
+            <p className="text-cyan-300 text-lg terminal-text">
+              Synchronize your consciousness with the quantum network
             </p>
             <p className="mt-4 text-sm text-gray-500">
-              Don't have an account?{' '}
+              New consciousness detected?{' '}
               <a
                 href="/register"
-                className="font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200"
+                className="font-medium text-cyan-400 hover:text-cyan-300 transition-colors duration-200"
               >
-                Create one here
+                Initialize neural link
               </a>
             </p>
           </div>
 
           {/* Success Message */}
           {message && (
-            <div className="bg-gradient-to-r from-green-900/50 to-green-800/30 backdrop-blur-sm border border-green-500/30 rounded-2xl p-4 shadow-2xl">
+            <div className="glass border border-green-500/30 rounded-2xl p-4 shadow-2xl">
               <div className="flex items-center space-x-3">
                 <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -178,20 +181,20 @@ export default function Login() {
           )}
 
           {/* Login Form */}
-          <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
+          <div className="glass border border-green-500/30 rounded-2xl p-8 shadow-2xl">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address
+                <label htmlFor="email" className="block text-sm font-medium text-green-300 mb-2">
+                  Neural ID
                 </label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
-                  className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.email ? 'border-red-500' : 'border-gray-600'
-                    } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
-                  placeholder="Enter your email"
+                  className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.email ? 'border-red-500' : 'border-green-600'
+                    } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 terminal-text`}
+                  placeholder="Enter your neural ID"
                   value={formData.email}
                   onChange={handleInputChange}
                   onBlur={handleInputBlur}
@@ -207,17 +210,17 @@ export default function Login() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                  Password
+                <label htmlFor="password" className="block text-sm font-medium text-green-300 mb-2">
+                  Access Code
                 </label>
                 <input
                   id="password"
                   name="password"
                   type="password"
                   autoComplete="current-password"
-                  className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.password ? 'border-red-500' : 'border-gray-600'
-                    } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
-                  placeholder="Enter your password"
+                  className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.password ? 'border-red-500' : 'border-green-600'
+                    } rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 terminal-text`}
+                  placeholder="Enter your access code"
                   value={formData.password}
                   onChange={handleInputChange}
                   onBlur={handleInputBlur}
@@ -232,27 +235,7 @@ export default function Login() {
                 )}
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded bg-gray-800"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
-                    Remember me
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <a href="#" className="font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200">
-                    Forgot password?
-                  </a>
-                </div>
-              </div>
-
-              {/* Error Message */}
+              {/* Submit Error */}
               {errors.submit && (
                 <div className="bg-gradient-to-r from-red-900/50 to-red-800/30 backdrop-blur-sm border border-red-500/30 rounded-xl p-4">
                   <div className="flex items-center space-x-3">
@@ -264,41 +247,20 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Submit Button */}
-              <div>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:-translate-y-0.5 shadow-2xl hover:shadow-blue-500/25"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                      </svg>
-                      Sign in
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Sign Up Link */}
-              <div className="text-center">
-                <p className="text-sm text-gray-400">
-                  Don't have an account?{' '}
-                  <a href="/register" className="font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200">
-                    Sign up here
-                  </a>
-                </p>
-              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-gradient-to-r from-green-600 to-cyan-600 hover:from-green-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 neon-glow"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>SYNCHRONIZING...</span>
+                  </div>
+                ) : (
+                  'ESTABLISH NEURAL LINK'
+                )}
+              </button>
             </form>
           </div>
         </div>

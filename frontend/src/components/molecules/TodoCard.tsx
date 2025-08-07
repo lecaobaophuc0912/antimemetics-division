@@ -33,6 +33,24 @@ export const TodoCard: React.FC<TodoCardProps> = ({
         }
     };
 
+    const getPriorityLabel = (priority: string) => {
+        switch (priority) {
+            case 'high': return 'CRITICAL';
+            case 'medium': return 'STANDARD';
+            case 'low': return 'MINIMAL';
+            default: return 'UNKNOWN';
+        }
+    };
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'completed': return 'COMPLETED';
+            case 'in-progress': return 'PROCESSING';
+            case 'pending': return 'PENDING';
+            default: return 'UNKNOWN';
+        }
+    };
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('vi-VN');
     };
@@ -42,27 +60,27 @@ export const TodoCard: React.FC<TodoCardProps> = ({
             <div className="flex items-start justify-between">
                 <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-3">
-                        <h3 className="text-xl font-bold text-white">{todo.title}</h3>
+                        <h3 className="text-xl font-bold text-green-400 neon-glow">{todo.title}</h3>
                         <Badge color={getPriorityColor(todo.priority)}>
-                            {todo.priority}
+                            {getPriorityLabel(todo.priority)}
                         </Badge>
                         <Badge color={getStatusColor(todo.status)}>
-                            {todo.status}
+                            {getStatusLabel(todo.status)}
                         </Badge>
                     </div>
-                    <p className="text-gray-300 mb-4 leading-relaxed">{todo.description}</p>
+                    <p className="text-cyan-300 mb-4 leading-relaxed terminal-text">{todo.description}</p>
                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                         <div className="flex items-center space-x-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            <span>Due: {formatDate(todo.dueDate)}</span>
+                            <span>Synchronization: {formatDate(todo.dueDate)}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <span>Created: {formatDate(todo.createdAt)}</span>
+                            <span>Initialized: {formatDate(todo.createdAt)}</span>
                         </div>
                     </div>
                 </div>
