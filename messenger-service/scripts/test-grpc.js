@@ -1,10 +1,12 @@
-// test-grpc.js
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');
 
 const packageDefinition = protoLoader.loadSync(
-    path.join(__dirname, '../src/proto/messenger.proto')
+    [
+        path.join(__dirname, '../src/proto/messenger.proto'),
+        path.join(__dirname, '../src/proto/hello.proto'),
+    ]
 );
 const messengerProto = grpc.loadPackageDefinition(packageDefinition);
 

@@ -116,28 +116,28 @@ class ApiService {
 
         try {
             const response = await fetch(url, config);
-            if (response.status === 401) {
-                let retries = 0;
-                while (retries < this.limitRetries) {
+            switch (response.status) {
+                case 401:
                     // Token expired, try to refresh
+                    // Token expired, try to refresh
+                    // Kiểm tra xem có phải refresh token error không
+                    const errorData = await response.json().catch(() => ({}));
+                    // Nếu là refresh token error, không retry
+                    if (errorData.detailCode === 'REFRESH_TOKEN_INVALID' ||
+                        errorData.error === 'RefreshTokenError') {
+                        // Clear tokens và redirect to login
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('user');
+                        window.location.href = '/login';
+                        return Promise.reject({ message: 'Refresh token invalid', status: 401 });
+                    }
+
+                    // Nếu là access token expired, thử refresh
                     try {
                         const newToken = await this.refreshAccessToken();
                         if (newToken?.data?.accessToken) {
-                            // Retry the original request with new token
-                            config.headers = {
-                                ...config.headers,
-                                Authorization: `Bearer ${newToken.data.accessToken}`,
-                            };
-                            localStorage.setItem('token', newToken.data.accessToken);
-                            const retryResponse = await fetch(url, config);
-
-                            if (!retryResponse.ok) {
-                                const errorData = await retryResponse.json().catch(() => ({}));
-                                const errorMessage = errorData.message || `HTTP error! status: ${retryResponse.status}`;
-                                return Promise.reject({ message: errorMessage, status: retryResponse.status });
-                            }
-
-                            return await retryResponse.json();
+                            // Retry logic...
                         }
                     } catch (refreshError) {
                         // Refresh failed, redirect to login
@@ -145,11 +145,13 @@ class ApiService {
                         localStorage.removeItem('refreshToken');
                         localStorage.removeItem('user');
                         window.location.href = '/login';
-                        return Promise.reject({ message: 'Authentication failed', status: 401 });
                     }
-                    retries++;
-                }
-                return Promise.reject({ message: 'Authentication failed', status: 401 });
+                    return Promise.reject({ message: 'Authentication failed', status: 401 });
+                case 402:
+                    // Token expired, try to refresh
+                    break;
+                default:
+                    break;
             }
 
             if (!response.ok) {
@@ -198,7 +200,13 @@ class ApiService {
     }
 
     // User endpoints
-    async getProfile(): Promise<any> {
+    async getProfile(): Promise<{
+        data: {
+            id: string;
+            email: string;
+            name?: string;
+        }
+    }> {
         return this.request('/auth/profile');
     }
 

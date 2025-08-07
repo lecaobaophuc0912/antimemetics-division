@@ -1,5 +1,14 @@
-import { Column, Entity, ForeignKey, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Generated, UpdateDateColumn, CreateDateColumn, DeleteDateColumn } from "typeorm";
-import { User } from "./user.entity";
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    UpdateDateColumn,
+    CreateDateColumn,
+    DeleteDateColumn,
+} from 'typeorm';
+import { User } from './user.entity';
 
 export enum TodoStatus {
     PENDING = 'pending',
@@ -18,8 +27,7 @@ export class Todo {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column({ type: 'varchar', length: 255, unique: true })
-    @Generated('increment')
+    @Column({ type: 'text' })
     code: string;
 
     @Column({ type: 'text' })

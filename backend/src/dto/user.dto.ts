@@ -3,7 +3,6 @@ import {
   IsEmail,
   IsOptional,
   MinLength,
-  IsNumber,
   IsUUID,
   IsNotEmpty,
 } from 'class-validator';
@@ -15,7 +14,7 @@ export class CreateUserDto {
   name: string;
 
   @IsEmail()
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   email: string;
 
   @IsString()
@@ -35,7 +34,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsEmail()
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   email?: string;
 
   @IsOptional()
@@ -72,7 +71,7 @@ export class RegisterDto {
   @IsEmail()
   @IsNotEmpty()
   @IsString()
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   email: string;
 
   @IsNotEmpty()

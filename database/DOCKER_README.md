@@ -15,7 +15,7 @@ The `docker-compose.yml` file is configured with:
 ### PostgreSQL
 - **Host**: localhost
 - **Port**: 5432
-- **Database**: nextjs_nestjs_db
+- **Database**: antimemetics_messenger
 - **Username**: postgres
 - **Password**: postgres123
 
@@ -50,17 +50,17 @@ docker-compose logs
 
 ### Connect directly to PostgreSQL
 ```bash
-docker exec -it nextjs-nestjs-postgres psql -U postgres -d nextjs_nestjs_db
+docker exec -it nextjs-nestjs-postgres psql -U postgres -d antimemetics_messenger
 ```
 
 ### Backup database
 ```bash
-docker exec -it nextjs-nestjs-postgres pg_dump -U postgres nextjs_nestjs_db > backup.sql
+docker exec -it nextjs-nestjs-postgres pg_dump -U postgres antimemetics_messenger > backup.sql
 ```
 
 ### Restore database
 ```bash
-docker exec -i nextjs-nestjs-postgres psql -U postgres -d nextjs_nestjs_db < backup.sql
+docker exec -i nextjs-nestjs-postgres psql -U postgres -d antimemetics_messenger < backup.sql
 ```
 
 ## Connect from NestJS
@@ -88,7 +88,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       port: parseInt(process.env.POSTGRES_PORT) || 5432,
       username: process.env.POSTGRES_USER || 'postgres',
       password: process.env.POSTGRES_PASSWORD || 'postgres123',
-      database: process.env.POSTGRES_DB || 'nextjs_nestjs_db',
+      database: process.env.POSTGRES_DB || 'antimemetics_messenger',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true, // Only use in development
     }),

@@ -1,4 +1,3 @@
-// backend/src/config/refresh-token.entity.ts
 import {
     Entity,
     PrimaryGeneratedColumn,

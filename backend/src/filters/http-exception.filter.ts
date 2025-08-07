@@ -5,9 +5,9 @@ import {
     HttpException,
     HttpStatus,
     Logger,
-    BadRequestException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { RefreshTokenException } from 'src/exceptions/refresh-token.exception';
 import { QueryFailedError, EntityNotFoundError, TypeORMError } from 'typeorm';
 
 @Catch()
@@ -22,23 +22,34 @@ export class HttpExceptionFilter implements ExceptionFilter {
         let status = HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal server error';
         let error = 'Internal Server Error';
-        let details = null;
+        let details: unknown = null;
+        let detailCode: string = '';
+        console.log('exception', exception);
 
         // Handle different types of exceptions
         if (exception instanceof HttpException) {
             status = exception.getStatus();
-            const exceptionResponse = exception.getResponse();
-
+            const exceptionResponse: {
+                code?: string;
+                message?: string;
+                errors?: unknown;
+                statusCode?: number;
+            } = exception.getResponse() as {
+                code?: string;
+                message?: string;
+                errors?: unknown;
+                statusCode?: number;
+            };
+            detailCode = exceptionResponse.code || '';
             if (typeof exceptionResponse === 'string') {
                 message = exceptionResponse;
             } else if (typeof exceptionResponse === 'object') {
-                const responseObj = exceptionResponse as any;
+                const responseObj = exceptionResponse as { message: string; details?: unknown; errors?: unknown };
                 message = responseObj.message || exception.message;
                 details = responseObj.details || responseObj.errors;
             } else {
                 message = exception.message;
             }
-
             error = exception.name;
         } else if (exception instanceof QueryFailedError) {
             status = HttpStatus.BAD_REQUEST;
@@ -52,6 +63,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
             status = HttpStatus.BAD_REQUEST;
             message = 'Database operation failed';
             error = 'TypeORMError';
+        } else if (exception instanceof RefreshTokenException) {
+            status = HttpStatus.BAD_REQUEST;
+            message = exception.message;
+            error = 'RefreshTokenException';
         } else if (exception instanceof Error) {
             // Handle specific error messages
             if (exception.message.includes('validation') || exception.message.includes('Invalid')) {
@@ -80,13 +95,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
         );
 
         // Send response
-        const responseBody: any = {
+        const responseBody: {
+            statusCode: number;
+            timestamp: string;
+            path: string;
+            method: string;
+            error: string;
+            message: string;
+            details?: unknown;
+            stack?: string;
+            detailCode?: string;
+        } = {
             statusCode: status,
             timestamp: new Date().toISOString(),
             path: request.url,
             method: request.method,
             error: error,
             message: message,
+            detailCode: detailCode,
         };
 
         if (details) {

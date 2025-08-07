@@ -2,7 +2,7 @@ import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class DateValidationPipe implements PipeTransform {
-    transform(value: any) {
+    transform(value: string | number | Date): Date {
         if (value === undefined || value === null) {
             return value;
         }
@@ -30,6 +30,6 @@ export class DateValidationPipe implements PipeTransform {
             return date;
         }
 
-        throw new BadRequestException(`Invalid date value: ${value}`);
+        throw new BadRequestException(`Invalid date value: ${value as string}`);
     }
 } 

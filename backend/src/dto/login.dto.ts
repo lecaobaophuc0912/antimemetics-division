@@ -5,7 +5,7 @@ export class LoginDto {
     @IsEmail()
     @IsNotEmpty()
     @IsString()
-    @Transform(({ value }) => value.toLowerCase())
+    @Transform(({ value }: { value: string }) => value.toLowerCase())
     email: string;
 
     @IsNotEmpty()

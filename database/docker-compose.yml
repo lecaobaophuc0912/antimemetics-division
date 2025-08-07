@@ -3,10 +3,9 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: nextjs-nestjs-postgres
+    container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: nextjs_nestjs_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres123
     ports:
@@ -20,7 +19,7 @@ services:
   # Optional: pgAdmin for database management
   pgadmin:
     image: dpage/pgadmin4:latest
-    container_name: nextjs-nestjs-pgadmin
+    container_name: postgres-pgadmin
     restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com

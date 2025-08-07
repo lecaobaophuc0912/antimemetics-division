@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
+import { join } from 'path';
 @Injectable()
 export class ConfigService {
     get messengerPort(): number {
@@ -50,9 +50,12 @@ export class ConfigService {
             transport: 'grpc' as const,
             options: {
                 package: 'messenger',
-                protoPath: require('path').join(__dirname, '../proto/messenger.proto'),
+                protoPath: [
+                    join(__dirname, '../proto/messenger.proto'),
+                    join(__dirname, '../proto/hello.proto'),
+                ],
                 url: `0.0.0.0:${this.messengerPort}`,
             },
         };
     }
-} 
+}

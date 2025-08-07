@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Todo, TodoPriority, TodoStatus } from "src/config/todo.entity";
+import { Todo, TodoStatus } from "src/config/todo.entity";
 import { TodoDto } from "src/dto/todo.dto";
 import { TodoQueryDto } from "src/dto/todo-query.dto";
-import { Repository, DataSource, Like, Between } from "typeorm";
+import { Repository, DataSource } from "typeorm";
+import { User } from "src/config/user.entity";
 
 @Injectable()
 export class TodoService {
@@ -29,17 +30,15 @@ export class TodoService {
             const nextNumber = lastTodo ? parseInt(lastTodo.code.split('-')[1]) + 1 : 1;
             const code = `TODO-${nextNumber.toString().padStart(3, '0')}`;
 
-            const todo = queryRunner.manager.create(Todo, {
+            const savedTodo = await queryRunner.manager.save(Todo, {
                 code,
                 title: createTodoDto.title,
                 description: createTodoDto.description,
-                status: createTodoDto.status as any,
-                priority: createTodoDto.priority as any,
+                status: createTodoDto.status,
+                priority: createTodoDto.priority,
                 dueDate: createTodoDto.dueDate,
-                userId: { id: createTodoDto.userId } as any
+                userId: { id: createTodoDto.userId } as Partial<User>
             });
-
-            const savedTodo = await queryRunner.manager.save(todo);
 
             await queryRunner.commitTransaction();
             return savedTodo;
@@ -110,7 +109,7 @@ export class TodoService {
             // Sorting
             const validSortFields = ['id', 'title', 'status', 'priority', 'dueDate', 'createdAt', 'updatedAt'];
             const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
-            queryBuilder.orderBy(`todo.${sortField}`, sortOrder as 'ASC' | 'DESC');
+            queryBuilder.orderBy(`todo.${sortField}`, sortOrder);
 
             // Pagination
             queryBuilder.skip((page - 1) * limit).take(limit);
@@ -174,13 +173,16 @@ export class TodoService {
             throw new ForbiddenException('You can only update your own todos');
         }
 
-        const { userId: dtoUserId, ...updateData } = updateTodoDto;
+        const updateData: Partial<Todo> = {
+            title: updateTodoDto.title,
+            description: updateTodoDto.description,
+            status: updateTodoDto.status,
+            priority: updateTodoDto.priority,
+            dueDate: new Date(updateTodoDto.dueDate)
+        };
 
         return this.todoRepository.update(id, {
             ...updateData,
-            status: updateData.status as TodoStatus,
-            priority: updateData.priority as TodoPriority,
-            dueDate: new Date(updateData.dueDate)
         });
     }
 

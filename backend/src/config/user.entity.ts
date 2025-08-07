@@ -6,7 +6,6 @@ import {
     UpdateDateColumn,
     Index,
     OneToMany,
-    JoinColumn,
 } from 'typeorm';
 import { Todo } from './todo.entity';
 import { RefreshToken } from './refresh-token.entity';

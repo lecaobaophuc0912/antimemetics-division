@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty, IsDate, IsArray, IsOptional, IsNumber } from "class-validator";
+import { TodoStatus, TodoPriority } from "src/config/todo.entity";
 
 export class TodoRequestDto {
     @IsString()
@@ -11,11 +12,11 @@ export class TodoRequestDto {
 
     @IsString()
     @IsNotEmpty()
-    status: string;
+    status: TodoStatus;
 
     @IsString()
     @IsNotEmpty()
-    priority: string;
+    priority: TodoPriority;
 
     @IsString()
     @IsNotEmpty()
@@ -37,11 +38,11 @@ export class TodoDto {
 
     @IsString()
     @IsNotEmpty()
-    status: string;
+    status: TodoStatus;
 
     @IsString()
     @IsNotEmpty()
-    priority: string;
+    priority: TodoPriority;
 
     @IsDate()
     @IsNotEmpty()

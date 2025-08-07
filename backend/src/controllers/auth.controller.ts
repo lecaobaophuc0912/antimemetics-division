@@ -1,6 +1,5 @@
 import { Body, Controller, Post, Req, Res, UnauthorizedException, UseInterceptors } from "@nestjs/common";
 import { LoginDto } from "src/dto/login.dto";
-import { RefreshTokenDto } from "src/dto/refresh-token.dto";
 import { RegisterDto, UserRequest } from "src/dto/user.dto";
 import { LoggingInterceptor } from "src/interceptors/logging.interceptor";
 import { TransformInterceptor } from "src/interceptors/transform.interceptor";
@@ -22,7 +21,7 @@ export class AuthController {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            maxAge: parseInt(process.env.COOKIE_MAX_AGE || '2592000000'), // 30 days
         });
         return result;
     }
@@ -37,7 +36,7 @@ export class AuthController {
         @Req() req: Request & { user: UserRequest },
         @Res({ passthrough: true }) res: Response
     ) {
-        const refreshToken = req.cookies?.refreshToken;
+        const refreshToken: string = req.cookies?.refreshToken as string;
 
         const result = await this.authService.refreshToken({
             refreshToken
@@ -49,7 +48,7 @@ export class AuthController {
             httpOnly: true,
             sameSite: 'strict',
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            maxAge: parseInt(process.env.COOKIE_MAX_AGE || '2592000000'), // 30 days
         });
 
         return {
@@ -63,7 +62,7 @@ export class AuthController {
         @Req() req: Request & { user: UserRequest },
         @Res({ passthrough: true }) res: Response
     ) {
-        const refreshToken = req.cookies?.refreshToken;
+        const refreshToken: string = req.cookies?.refreshToken as string;
         await this.authService.logout(refreshToken);
         res.clearCookie('refreshToken', {
             httpOnly: true,

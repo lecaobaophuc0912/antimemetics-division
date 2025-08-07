@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsNumber, IsEnum, Min, Max, IsDate, IsIn } from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { TodoStatus, TodoPriority } from '../config/todo.entity';
 import { TransformDate } from '../decorators/transform-date.decorator';
 
