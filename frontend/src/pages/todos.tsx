@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
-import { apiService, Todo, TodoRequestDto, TodoQueryParams } from '../services/api';
+import { todoService, Todo, TodoRequestDto, TodoQueryParams } from '../services';
 import { Navigation } from '../components/Navigation';
 import { TodoHeader, TodoList, TodoSearch } from '../components/organisms';
 import { TodoForm, ErrorMessage } from '../components/molecules';
@@ -23,6 +23,7 @@ export default function Todos() {
     dueDate: new Date().toISOString().split('T')[0]
   });
   const [todoId, setTodoId] = useState<string | null>(null);
+  const firstRender = useRef(true);
 
   useEffect(() => {
     fetchTodos();
@@ -31,7 +32,7 @@ export default function Todos() {
   const fetchTodos = useCallback(async (queryParams: TodoQueryParams = {}) => {
     try {
       setLoading(true)
-      const response = await apiService.getTodos(queryParams);
+      const response = await todoService.getTodos(queryParams);
       setTodos(response.data);
       setError(null);
     } catch (err: any) {
@@ -43,6 +44,10 @@ export default function Todos() {
 
   // Debounced search effect
   useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
     const timeoutId = setTimeout(() => {
       const queryParams: TodoQueryParams = {};
       if (searchValue.trim()) {
@@ -55,12 +60,12 @@ export default function Todos() {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchValue, activeFilter, fetchTodos]);
+  }, [searchValue, activeFilter]);
 
   const handleCreateTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newTodo = await apiService.createTodo({
+      const newTodo = await todoService.createTodo({
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString()
       });
@@ -82,8 +87,7 @@ export default function Todos() {
 
   const handleOpenDetailTodo = async (id: string) => {
     try {
-      const response = await apiService.getTodo(id);
-      console.log(response);
+      const response = await todoService.getTodo(id);
       const todo = response.data;
       setFormData({
         title: todo.title,
@@ -108,7 +112,7 @@ export default function Todos() {
     e.preventDefault();
     if (!todoId) return;
     try {
-      await apiService.updateTodo(todoId, {
+      await todoService.updateTodo(todoId, {
         ...formData,
         dueDate: new Date(formData.dueDate).toISOString()
       });
@@ -122,7 +126,7 @@ export default function Todos() {
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      await apiService.deleteTodo(id);
+      await todoService.deleteTodo(id);
       setTodos(todos.filter(todo => todo.id !== id));
       setError(null);
     } catch (err: any) {

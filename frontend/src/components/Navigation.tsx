@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -22,9 +23,13 @@ export function Navigation({ user, logout }: NavigationProps) {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-cyan-600 rounded-lg flex items-center justify-center neon-glow">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+              <Image
+                src="/antimemetics-division-logo.png"
+                alt="Antimemetics Division Logo"
+                width={24}
+                height={24}
+                className="object-contain filter brightness-110 contrast-125"
+              />
             </div>
             <span className="text-lg font-bold gradient-text">
               ANTIMEMETICS DIVISION

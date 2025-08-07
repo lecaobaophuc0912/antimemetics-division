@@ -1,7 +1,7 @@
 import React from 'react';
 import { SearchBar } from '../molecules/SearchBar';
 import { SearchResults } from '../molecules/SearchResults';
-import { Todo } from '../../services/api';
+import type { Todo } from '@/declaration';
 
 interface TodoSearchProps {
     todos: Todo[];

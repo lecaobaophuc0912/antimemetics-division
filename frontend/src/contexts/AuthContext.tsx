@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useRouter } from 'next/router';
-import apiService from '@/services/api';
+import { authService } from '@/services';
 
 interface User {
   id: string;
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    await apiService.logout();
+    await authService.logout();
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');

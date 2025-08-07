@@ -2,7 +2,6 @@ import Image from "next/image";
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/AuthContext';
 import { Navigation } from '../components/Navigation';
-import apiService from "@/services/api";
 import Link from "next/link";
 
 export default function Home() {
@@ -159,10 +158,14 @@ export default function Home() {
               </div>
 
               <div className="text-center">
-                <div className="w-16 h-16 bg-cyan-500 rounded-full mx-auto mb-3 flex items-center justify-center neon-glow-accent">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                <div className="w-16 h-16 bg-cyan-500 rounded-full mx-auto mb-3 flex items-center justify-center neon-glow-accent overflow-hidden">
+                  <Image
+                    src="/antimemetics-division-logo.png"
+                    alt="Antimemetics Division Logo"
+                    width={32}
+                    height={32}
+                    className="object-contain filter brightness-110 contrast-125"
+                  />
                 </div>
                 <h4 className="text-cyan-400 font-semibold">QUANTUM CORE</h4>
                 <p className="text-cyan-300 text-sm">ACTIVE</p>

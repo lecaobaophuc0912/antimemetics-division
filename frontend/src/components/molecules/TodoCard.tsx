@@ -2,7 +2,7 @@ import React from 'react';
 import { Card } from '../atoms/Card';
 import { Badge } from '../atoms/Badge';
 import { IconButton } from '../atoms/IconButton';
-import { Todo } from '../../services/api';
+import type { Todo } from '@/declaration';
 
 interface TodoCardProps {
     todo: Todo;

@@ -9,120 +9,191 @@ import {
 import { Request, Response } from 'express';
 import { RefreshTokenException } from 'src/exceptions/refresh-token.exception';
 import { QueryFailedError, EntityNotFoundError, TypeORMError } from 'typeorm';
+import type {
+    ErrorResponseBody,
+    ExceptionHandlerContext,
+    RequestContext,
+    LoggerContext,
+    HttpExceptionResponse,
+    ExceptionFilterOptions,
+} from '../types/exception.types';
+import { ExceptionType } from '../types/exception.types';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
     private readonly logger = new Logger(HttpExceptionFilter.name);
+    private readonly options: ExceptionFilterOptions;
 
-    catch(exception: unknown, host: ArgumentsHost) {
+    constructor(options?: ExceptionFilterOptions) {
+        this.options = {
+            includeStack: process.env.NODE_ENV === 'development',
+            logLevel: 'error',
+            ...options,
+        };
+    }
+
+    catch(exception: unknown, host: ArgumentsHost): void {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse<Response>();
         const request = ctx.getRequest<Request>();
 
+        const requestContext: RequestContext = {
+            method: request.method,
+            url: request.url,
+            path: request.url,
+        };
+
+        const handlerContext = this.handleException(exception);
+        this.logError(exception, handlerContext, requestContext);
+        this.sendResponse(response, handlerContext, exception);
+    }
+
+    private handleException(
+        exception: unknown
+    ): ExceptionHandlerContext {
         let status = HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal server error';
-        let error = 'Internal Server Error';
+        let error: ExceptionType = ExceptionType.UNKNOWN_ERROR;
         let details: unknown = null;
         let detailCode: string = '';
+
         console.log('exception', exception);
 
         // Handle different types of exceptions
         if (exception instanceof HttpException) {
-            status = exception.getStatus();
-            const exceptionResponse: {
-                code?: string;
-                message?: string;
-                errors?: unknown;
-                statusCode?: number;
-            } = exception.getResponse() as {
-                code?: string;
-                message?: string;
-                errors?: unknown;
-                statusCode?: number;
-            };
-            detailCode = exceptionResponse.code || '';
-            if (typeof exceptionResponse === 'string') {
-                message = exceptionResponse;
-            } else if (typeof exceptionResponse === 'object') {
-                const responseObj = exceptionResponse as { message: string; details?: unknown; errors?: unknown };
-                message = responseObj.message || exception.message;
-                details = responseObj.details || responseObj.errors;
-            } else {
-                message = exception.message;
-            }
-            error = exception.name;
+            const exceptionContext = this.handleHttpException(exception);
+            status = exceptionContext.status;
+            message = exceptionContext.message;
+            error = exceptionContext.error;
+            details = exceptionContext.details;
+            detailCode = exceptionContext.detailCode;
         } else if (exception instanceof QueryFailedError) {
             status = HttpStatus.BAD_REQUEST;
             message = 'Database query failed';
-            error = 'QueryFailedError';
+            error = ExceptionType.QUERY_FAILED_ERROR;
         } else if (exception instanceof EntityNotFoundError) {
             status = HttpStatus.NOT_FOUND;
             message = 'Entity not found';
-            error = 'EntityNotFoundError';
+            error = ExceptionType.ENTITY_NOT_FOUND_ERROR;
         } else if (exception instanceof TypeORMError) {
             status = HttpStatus.BAD_REQUEST;
             message = 'Database operation failed';
-            error = 'TypeORMError';
+            error = ExceptionType.TYPEORM_ERROR;
         } else if (exception instanceof RefreshTokenException) {
             status = HttpStatus.BAD_REQUEST;
             message = exception.message;
-            error = 'RefreshTokenException';
+            error = ExceptionType.REFRESH_TOKEN_EXCEPTION;
         } else if (exception instanceof Error) {
-            // Handle specific error messages
-            if (exception.message.includes('validation') || exception.message.includes('Invalid')) {
-                status = HttpStatus.BAD_REQUEST;
-                message = exception.message;
-                error = 'ValidationError';
-            } else if (exception.message.includes('not found')) {
-                status = HttpStatus.NOT_FOUND;
-                message = exception.message;
-                error = 'NotFoundError';
-            } else if (exception.message.includes('forbidden') || exception.message.includes('unauthorized')) {
-                status = HttpStatus.FORBIDDEN;
-                message = exception.message;
-                error = 'ForbiddenError';
-            } else if (exception.message.includes('Failed to fetch todos')) {
-                status = HttpStatus.BAD_REQUEST;
-                message = exception.message;
-                error = 'TodoFetchError';
-            }
+            const errorContext = this.handleGenericError(exception);
+            status = errorContext.status;
+            message = errorContext.message;
+            error = errorContext.error;
         }
 
-        // Log the error
-        this.logger.error(
-            `${request.method} ${request.url} - ${status} - ${message}`,
-            exception instanceof Error ? exception.stack : 'Unknown error',
-        );
+        return {
+            status,
+            message,
+            error,
+            details,
+            detailCode,
+        };
+    }
 
-        // Send response
-        const responseBody: {
-            statusCode: number;
-            timestamp: string;
-            path: string;
-            method: string;
-            error: string;
-            message: string;
-            details?: unknown;
-            stack?: string;
-            detailCode?: string;
-        } = {
-            statusCode: status,
-            timestamp: new Date().toISOString(),
-            path: request.url,
-            method: request.method,
-            error: error,
-            message: message,
-            detailCode: detailCode,
+    private handleHttpException(exception: HttpException): ExceptionHandlerContext {
+        const status = exception.getStatus();
+        const exceptionResponse = exception.getResponse() as HttpExceptionResponse;
+
+        let message: string;
+        let details: unknown = null;
+        const detailCode = exceptionResponse.code || '';
+
+        if (typeof exceptionResponse === 'string') {
+            message = exceptionResponse;
+        } else if (typeof exceptionResponse === 'object') {
+            message = exceptionResponse.message || exception.message;
+            details = exceptionResponse.details || exceptionResponse.errors;
+        } else {
+            message = exception.message;
+        }
+
+        return {
+            status,
+            message,
+            error: ExceptionType.HTTP_EXCEPTION,
+            details,
+            detailCode,
+        };
+    }
+
+    private handleGenericError(exception: Error): ExceptionHandlerContext {
+        let status = HttpStatus.INTERNAL_SERVER_ERROR;
+        let error: ExceptionType = ExceptionType.UNKNOWN_ERROR;
+
+        if (exception.message.includes('validation') || exception.message.includes('Invalid')) {
+            status = HttpStatus.BAD_REQUEST;
+            error = ExceptionType.VALIDATION_ERROR;
+        } else if (exception.message.includes('not found')) {
+            status = HttpStatus.NOT_FOUND;
+            error = ExceptionType.NOT_FOUND_ERROR;
+        } else if (exception.message.includes('forbidden') || exception.message.includes('unauthorized')) {
+            status = HttpStatus.FORBIDDEN;
+            error = ExceptionType.FORBIDDEN_ERROR;
+        } else if (exception.message.includes('Failed to fetch todos')) {
+            status = HttpStatus.BAD_REQUEST;
+            error = ExceptionType.TODO_FETCH_ERROR;
+        }
+
+        return {
+            status,
+            message: exception.message,
+            error,
+            details: null,
+            detailCode: '',
+        };
+    }
+
+    private logError(
+        exception: unknown,
+        handlerContext: ExceptionHandlerContext,
+        requestContext: RequestContext
+    ): void {
+        const loggerContext: LoggerContext = {
+            method: requestContext.method,
+            url: requestContext.url,
+            status: handlerContext.status,
+            message: handlerContext.message,
+            stack: exception instanceof Error ? exception.stack : undefined,
         };
 
-        if (details) {
-            responseBody.details = details;
+        this.logger.error(
+            `${loggerContext.method} ${loggerContext.url} - ${loggerContext.status} - ${loggerContext.message}`,
+            loggerContext.stack || 'Unknown error',
+        );
+    }
+
+    private sendResponse(
+        response: Response,
+        handlerContext: ExceptionHandlerContext,
+        exception: unknown
+    ): void {
+        const responseBody: ErrorResponseBody = {
+            statusCode: handlerContext.status,
+            timestamp: new Date().toISOString(),
+            path: response.req.url,
+            method: response.req.method,
+            error: handlerContext.error,
+            message: handlerContext.message,
+            detailCode: handlerContext.detailCode,
+        };
+
+        if (handlerContext.details) {
+            responseBody.details = handlerContext.details;
         }
 
-        if (process.env.NODE_ENV === 'development' && exception instanceof Error) {
+        if (this.options.includeStack && exception instanceof Error) {
             responseBody.stack = exception.stack;
         }
 
-        response.status(status).json(responseBody);
+        response.status(handlerContext.status).json(responseBody);
     }
 } 

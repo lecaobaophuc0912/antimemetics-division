@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
-import apiService from '../services/api';
+import { authService } from '../services';
+import Link from 'next/link';
+import { getMessage } from '@/services/handle-error';
+import Image from 'next/image';
 
 export default function Login() {
   const router = useRouter();
@@ -89,7 +92,7 @@ export default function Login() {
     setIsSubmitting(true);
 
     try {
-      const res = await apiService.login({
+      const res = await authService.login({
         email: formData.email,
         password: formData.password,
       });
@@ -100,8 +103,7 @@ export default function Login() {
       // Redirect to home page
       router.push('/');
     } catch (error: any) {
-      // Handle error object from API service
-      const errorMessage = error?.message || 'Neural synchronization failed. Please try again.';
+      const errorMessage = `DENIED: ${getMessage(error)}` || 'ACCESS DENIED';
       setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -146,10 +148,14 @@ export default function Login() {
         <div className="max-w-md w-full space-y-8 relative z-10">
           {/* Header */}
           <div className="text-center">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-green-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl neon-glow">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+            <div className="mx-auto w-24 h-24 bg-gradient-to-r from-green-500 to-cyan-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl neon-glow overflow-hidden">
+              <Image
+                src="/antimemetics-division-logo.png"
+                alt="Antimemetics Division Logo"
+                width={64}
+                height={64}
+                className="object-contain filter brightness-110 contrast-125"
+              />
             </div>
             <h2 className="text-4xl font-bold text-green-400 mb-2 neon-glow">
               NEURAL ACCESS
@@ -159,12 +165,12 @@ export default function Login() {
             </p>
             <p className="mt-4 text-sm text-gray-500">
               New consciousness detected?{' '}
-              <a
+              <Link
                 href="/register"
                 className="font-medium text-cyan-400 hover:text-cyan-300 transition-colors duration-200"
               >
                 Initialize neural link
-              </a>
+              </Link>
             </p>
           </div>
 
@@ -190,6 +196,7 @@ export default function Login() {
                 <input
                   id="email"
                   name="email"
+
                   type="email"
                   autoComplete="email"
                   className={`w-full px-4 py-3 bg-gray-800/50 border ${errors.email ? 'border-red-500' : 'border-green-600'

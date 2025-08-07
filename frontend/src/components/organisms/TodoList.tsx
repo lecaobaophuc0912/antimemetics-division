@@ -2,7 +2,7 @@ import React from 'react';
 import { TodoCard } from '../molecules/TodoCard';
 import { EmptyState } from '../molecules/EmptyState';
 import { LoadingSpinner } from '../molecules/LoadingSpinner';
-import { Todo } from '../../services/api';
+import type { Todo } from '@/declaration';
 
 interface TodoListProps {
     todos: Todo[];

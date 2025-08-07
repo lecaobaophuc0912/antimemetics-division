@@ -17,7 +17,6 @@ const nextConfig: NextConfig = {
   },
   // Optional: Configure server port
   experimental: {
-    serverComponentsExternalPackages: [],
   },
 };
 

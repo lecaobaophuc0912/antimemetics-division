@@ -3,7 +3,7 @@ import { Input } from '../atoms/Input';
 import { Textarea } from '../atoms/Textarea';
 import { Select } from '../atoms/Select';
 import { Button } from '../atoms/Button';
-import { TodoRequestDto } from '../../services/api';
+import type { TodoRequestDto } from '@/declaration';
 
 interface TodoFormProps {
     formData: TodoRequestDto;
