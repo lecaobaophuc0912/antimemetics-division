@@ -1,299 +1,334 @@
 import * as fabric from 'fabric';
 import { queue } from 'async';
-import { Bubble } from './useFabricObjects';
 
-const ANIMATION_CONFIG = {
-    QUEUE_CONCURRENCY: 4,
-    ARRANGEMENT_CONCURRENCY: 10,
-    STAGGER_DELAY: 100,
-    ARRANGEMENT_DURATION: 1000,
-    ARRANGEMENT_EASING: fabric.util.ease.easeOutQuart,
-};
+// Animation Configuration Constants
+export const ANIMATION_CONFIG = {
+    QUEUE_CONCURRENCY: 4,        // Các worker để animation chạy liên tục
+    QUEUE_ARRANGE_CONCURRENCY: 10,        // Các worker để animation chạy liên tục
+    STAGGER_DELAY: 0,            // Không delay giữa các bubble
+    ANIMATION_DURATION: 600,     // Thời gian animation (ms)
+    PAUSE_DELAY: 50,             // Delay trước khi arrange (ms)
+    TARGET_FPS: 60,              // Target frame rate
+    SHIMMER_UPDATE_RATE: 0.1,    // Tỷ lệ update shimmer (10%)
+    ENABLE_LOGGING: true,        // Bật/tắt logging để debug
+} as const;
 
-export const useBubbleAnimation = (
-    fabricCanvasRef: { current: fabric.Canvas | null },
-    bubbles: Bubble[],
-    setIsArranging: (value: boolean) => void,
-    setIsPaused: (value: boolean) => void
-) => {
-    const animationRef = { current: 0 };
-    const animationQueueRef = { current: null as any };
-    const arrangementQueueRef = { current: null as any };
+export interface Bubble {
+    id: number;
+    fabricObject: fabric.Group;
+    speedX: number;
+    speedY: number;
+    rotationSpeed: number;
+    shimmer: number;
+    avatarUrl?: string | null;
+    userName: string;
+    userId: string;
+    color: string;
+    // New flags for arrangement/locking behavior
+    isArranging?: boolean;
+    isLocked?: boolean;
+    prevSpeedX?: number;
+    prevSpeedY?: number;
+    // Flag để track trạng thái done trong arrangement
+    isMarkedDone?: boolean;
+}
 
-    // Animation loop chính
-    const startAnimation = () => {
-        if (!fabricCanvasRef.current || bubbles.length === 0) return;
+export const useBubbleAnimation = () => {
 
-        const animate = () => {
-            if (!fabricCanvasRef.current) return;
+    const initAnimationQueue = () => {
+        return queue(async (task: any) => {
+            return new Promise<void>((resolve) => {
+                const { bubble, targetX, targetY, canvas } = task;
+                const bubbleId = `bubble-${bubble.id}`;
 
-            // Update shimmer effect
-            bubbles.forEach((bubble, index) => {
-                if (bubble.fabricObject && !bubble.isLocked) {
-                    bubble.shimmer = (bubble.shimmer + 0.5) % 100;
-                    const shimmerElement = bubble.fabricObject.getObjects().find(obj =>
-                        obj instanceof fabric.Circle && (obj as any).fill instanceof fabric.Gradient
-                    );
-                    if (shimmerElement) {
-                        const gradient = (shimmerElement as fabric.Circle).fill as any;
-                        if (gradient && gradient.colorStops) {
-                            const angle = (bubble.shimmer / 100) * 360;
-                            gradient.coords = {
-                                ...gradient.coords,
-                                x1: Math.cos((angle - 90) * Math.PI / 180) * 60,
-                                y1: Math.sin((angle - 90) * Math.PI / 180) * 60,
-                            };
+                // Dừng chuyển động ngay lập tức
+                bubble.speedX = 0;
+                bubble.speedY = 0;
+                // Comment rotation để giảm lag
+                // bubble.rotationSpeed = 0;
+
+                // Animate với callback
+                bubble.fabricObject.animate({
+                    left: targetX,
+                    top: targetY,
+                    angle: 0,
+                }, {
+                    duration: ANIMATION_CONFIG.ANIMATION_DURATION,
+                    easing: fabric.util.ease.easeOutQuart,
+                    onChange: () => {
+
+                        if (canvas && canvas.renderAll) {
+                            canvas.requestRenderAll();
                         }
+                    },
+                    onComplete: () => {
+                        bubble.fabricObject.setCoords();
+                        resolve(); // Hoàn thành task
                     }
-                }
+                });
             });
+        }, ANIMATION_CONFIG.QUEUE_CONCURRENCY);
+    }
 
-            // Physics và collision detection
-            for (let i = 0; i < bubbles.length; i++) {
-                if (bubbles[i].isLocked) continue;
+    const initArrangementQueue = () => {
+        return queue(async (task: any) => {
+            return new Promise<void>((resolve) => {
+                const { bubble, targetX, targetY, canvas } = task;
 
-                const bubble1 = bubbles[i];
-                const obj1 = bubble1.fabricObject;
+                // Lock bubble cho arrangement
+                bubble.isArranging = true;
+                bubble.isLocked = true;
+                bubble.prevSpeedX = bubble.speedX;
+                bubble.prevSpeedY = bubble.speedY;
+                bubble.speedX = 0;
+                bubble.speedY = 0;
+                // Comment rotation để giảm lag
+                // bubble.rotationSpeed = 0;
 
-                // Wall collision
-                const rect1 = obj1.getBoundingRect();
-                const epsilon = 5;
+                // Thêm flag để track trạng thái done
+                (bubble as any).isMarkedDone = false;
 
-                if (rect1.left < epsilon) {
-                    obj1.set({ left: epsilon + rect1.width / 2 });
-                    bubble1.speedX = Math.abs(bubble1.speedX) * 0.8;
-                } else if (rect1.left + rect1.width > (fabricCanvasRef.current.width || 800) - epsilon) {
-                    obj1.set({ left: (fabricCanvasRef.current.width || 800) - epsilon - rect1.width / 2 });
-                    bubble1.speedX = -Math.abs(bubble1.speedX) * 0.8;
-                }
+                // Track thời gian bắt đầu animation
+                const startTime = Date.now();
+                const totalDuration = ANIMATION_CONFIG.ANIMATION_DURATION;
 
-                if (rect1.top < epsilon) {
-                    obj1.set({ top: epsilon + rect1.height / 2 });
-                    bubble1.speedY = Math.abs(bubble1.speedY) * 0.8;
-                } else if (rect1.top + rect1.height > (fabricCanvasRef.current.height || 600) - epsilon) {
-                    obj1.set({ top: (fabricCanvasRef.current.height || 600) - epsilon - rect1.height / 2 });
-                    bubble1.speedY = -Math.abs(bubble1.speedY) * 0.8;
-                }
+                // Animate với callback
+                bubble.fabricObject.animate({
+                    left: targetX,
+                    top: targetY,
+                    angle: 0,
+                }, {
+                    duration: totalDuration,
+                    easing: fabric.util.ease.easeOutQuart,
+                    onChange: (progress: number) => {
+                        // progress là số từ 0 đến 1 (0% đến 100%)
+                        const elapsedTime = Date.now() - startTime;
+                        const progressPercent = elapsedTime / totalDuration;
 
-                // Bubble collision
-                for (let j = i + 1; j < bubbles.length; j++) {
-                    if (bubbles[j].isLocked) continue;
+                        // Debug: log progress mỗi 20% để theo dõi
+                        if (Math.floor(progressPercent * 5) !== Math.floor(((progressPercent - 0.01) * 5))) {
 
-                    const bubble2 = bubbles[j];
-                    const obj2 = bubble2.fabricObject;
+                        }
 
-                    const rect2 = obj2.getBoundingRect();
-                    const center1 = { x: rect1.left + rect1.width / 2, y: rect1.top + rect1.height / 2 };
-                    const center2 = { x: rect2.left + rect2.width / 2, y: rect2.top + rect2.height / 2 };
+                        // Nếu đã chạy được 50% thời gian và chưa được mark done
+                        if (progressPercent >= 0.5 && !(bubble as any).isMarkedDone) {
+                            (bubble as any).isMarkedDone = true;
 
-                    const distanceSquared = Math.pow(center2.x - center1.x, 2) + Math.pow(center2.y - center1.y, 2);
-                    const minDistance = 60; // Fixed radius
 
-                    if (distanceSquared < minDistance * minDistance) {
-                        // Collision detected
-                        const distance = Math.sqrt(distanceSquared);
-                        if (distance === 0) continue;
+                            // Mark bubble là done và resolve promise
+                            resolve();
+                        }
 
-                        const angle = Math.atan2(center2.y - center1.y, center2.x - center1.x);
-                        const overlap = minDistance - distance;
+                        // Render canvas
+                        if (canvas && canvas.renderAll) {
+                            canvas.requestRenderAll();
+                        }
+                    },
+                    onComplete: () => {
+                        // Fallback nếu onChange không trigger đủ hoặc chưa done
+                        if (!(bubble as any).isMarkedDone) {
 
-                        // Push bubbles apart
-                        const pushX = Math.cos(angle) * overlap * 0.5;
-                        const pushY = Math.sin(angle) * overlap * 0.5;
+                            (bubble as any).isMarkedDone = true;
+                            resolve();
+                        }
 
-                        obj1.set({ left: obj1.left! - pushX, top: obj1.top! - pushY });
-                        obj2.set({ left: obj2.left! + pushX, top: obj2.top! + pushY });
+                        bubble.fabricObject.setCoords();
 
-                        // Bounce effect
-                        const restitution = 0.8;
-                        const relativeVelocityX = bubble2.speedX - bubble1.speedX;
-                        const relativeVelocityY = bubble2.speedY - bubble1.speedY;
+                        // Keep bubble locked at arranged position
+                        bubble.isArranging = false;
+                        bubble.speedX = 0;
+                        bubble.speedY = 0;
+                        // Comment rotation để giảm lag
+                        // bubble.rotationSpeed = 0;
+                    }
+                });
+            });
+        }, ANIMATION_CONFIG.QUEUE_ARRANGE_CONCURRENCY); // Concurrency config
+    }
 
-                        const normalX = (center2.x - center1.x) / distance;
-                        const normalY = (center2.y - center1.y) / distance;
+    const initAnimation = (fabricCanvasRef: fabric.Canvas, bubbles: Bubble[]) => {
+        let animationRef;
 
-                        const relativeVelocityDotNormal = relativeVelocityX * normalX + relativeVelocityY * normalY;
+        const animate = (currentTime: number) => {
+            const canvas = fabricCanvasRef;
+            let lastTime = 0;
+            const frameInterval = 1000 / ANIMATION_CONFIG.TARGET_FPS;
 
-                        if (relativeVelocityDotNormal < 0) {
-                            const impulse = -relativeVelocityDotNormal * restitution;
-                            bubble1.speedX -= impulse * normalX;
-                            bubble1.speedY -= impulse * normalY;
-                            bubble2.speedX += impulse * normalX;
-                            bubble2.speedY += impulse * normalY;
+            if (currentTime - lastTime >= frameInterval) {
+                const rect = canvas.getElement().getBoundingClientRect()
+
+                // Batch operations để giảm số lần renderAll
+                let needsRender = false;
+
+                bubbles.forEach(bubble => {
+                    const obj = bubble.fabricObject;
+                    // Nếu bubble đang bị lock do arrangement, không cập nhật physics cho bubble đó
+                    if (bubble.isLocked) {
+                        return;
+                    }
+
+                    let newX = (obj.left || 0) + bubble.speedX;
+                    let newY = (obj.top || 0) + bubble.speedY;
+                    let newSpeedX = bubble.speedX;
+                    let newSpeedY = bubble.speedY;
+
+                    // Di chuyển trước, sau đó hiệu chỉnh nếu vượt biên theo bounding box thật
+                    // Comment rotation để giảm lag
+                    obj.set({ left: newX, top: newY /*, angle: (obj.angle || 0) + bubble.rotationSpeed */ });
+                    obj.setCoords();
+                    needsRender = true;
+                    const br = obj.getBoundingRect();
+                    const epsilon = 0.5;
+                    let adjustX = 0;
+                    let adjustY = 0;
+                    let bouncedX = false;
+                    let bouncedY = false;
+
+                    if (br.left < 0) {
+                        adjustX = -br.left + epsilon;
+                        bouncedX = true;
+                    } else if (br.left + br.width > rect.width) {
+                        adjustX = rect.width - (br.left + br.width) - epsilon;
+                        bouncedX = true;
+                    }
+
+                    if (br.top < 0) {
+                        adjustY = -br.top + epsilon;
+                        bouncedY = true;
+                    } else if (br.top + br.height > rect.height) {
+                        adjustY = rect.height - (br.top + br.height) - epsilon;
+                        bouncedY = true;
+                    }
+
+                    if (adjustX !== 0 || adjustY !== 0) {
+                        obj.set({ left: (obj.left || 0) + adjustX, top: (obj.top || 0) + adjustY });
+                        if (bouncedX) newSpeedX = -newSpeedX;
+                        if (bouncedY) newSpeedY = -newSpeedY;
+                    }
+
+                    // Kiểm tra va chạm với các bubble khác (tối ưu performance)
+                    const currentBubble = bubble;
+                    const currentRadius = 60; // Fixed radius for all bubbles (120/2)
+                    const currentX = obj.left || 0;
+                    const currentY = obj.top || 0;
+
+                    // Chỉ kiểm tra với bubbles có index lớn hơn để tránh kiểm tra trùng lặp
+                    for (let j = bubbles.indexOf(bubble) + 1; j < bubbles.length; j++) {
+                        const otherBubble = bubbles[j];
+                        // Bỏ qua va chạm nếu otherBubble đang lock (để giữ vị trí hàng)
+                        if (otherBubble.isLocked) continue;
+                        const otherObj = otherBubble.fabricObject;
+                        const otherX = otherObj.left || 0;
+                        const otherY = otherObj.top || 0;
+
+                        // Quick distance check trước khi tính sqrt
+                        const dx = currentX - otherX;
+                        const dy = currentY - otherY;
+                        const distanceSquared = dx * dx + dy * dy;
+                        const minDistance = 125; // currentRadius + otherRadius + 5px padding
+                        const minDistanceSquared = minDistance * minDistance;
+
+                        if (distanceSquared < minDistanceSquared) {
+                            const distance = Math.sqrt(distanceSquared);
+                            if (distance > 0) { // Tránh chia cho 0
+                                const angle = Math.atan2(dy, dx);
+                                const overlap = minDistance - distance;
+
+                                // Đẩy 2 bubble ra xa nhau
+                                const pushX = Math.cos(angle) * (overlap * 0.5);
+                                const pushY = Math.sin(angle) * (overlap * 0.5);
+
+                                // Cập nhật vị trí
+                                obj.set({
+                                    left: currentX + pushX,
+                                    top: currentY + pushY
+                                });
+                                otherObj.set({
+                                    left: otherX - pushX,
+                                    top: otherY - pushY
+                                });
+
+                                // Tính toán phản lực (simplified)
+                                const relativeVelocityX = newSpeedX - otherBubble.speedX;
+                                const relativeVelocityY = newSpeedY - otherBubble.speedY;
+                                const velocityAlongNormal = relativeVelocityX * Math.cos(angle) + relativeVelocityY * Math.sin(angle);
+
+                                if (velocityAlongNormal < 0) {
+                                    const restitution = 0.8;
+                                    const impulse = -(1 + restitution) * velocityAlongNormal;
+                                    const impulseX = impulse * Math.cos(angle);
+                                    const impulseY = impulse * Math.sin(angle);
+
+                                    newSpeedX += impulseX;
+                                    newSpeedY += impulseY;
+                                    otherBubble.speedX -= impulseX;
+                                    otherBubble.speedY -= impulseY;
+                                }
+                            }
                         }
                     }
-                }
 
-                // Update position
-                if (!bubble1.isLocked) {
-                    obj1.set({
-                        left: obj1.left! + bubble1.speedX,
-                        top: obj1.top! + bubble1.speedY,
-                        // angle: obj1.angle! + bubble1.rotationSpeed, // Disabled rotation
-                    });
-                    obj1.setCoords();
+                    // Add natural movement (giảm tần suất)
+                    if (Math.random() < 0.05) {
+                        newSpeedX += (Math.random() - 0.5) * 0.01;
+                        newSpeedY += (Math.random() - 0.5) * 0.01;
+                    }
+
+                    // Limit speed
+                    newSpeedX = Math.max(-1.5, Math.min(1.5, newSpeedX));
+                    newSpeedY = Math.max(-1.5, Math.min(1.5, newSpeedY));
+
+                    // Update shimmer effect - tối ưu performance với update ít thường xuyên hơn
+                    if (Math.random() < ANIMATION_CONFIG.SHIMMER_UPDATE_RATE) { // Update shimmer theo config
+                        const shimmerCircle = obj.getObjects()?.find(o => (o as any).name === 'shimmer');
+                        if (shimmerCircle) {
+                            bubble.shimmer = (bubble.shimmer + 2) % 100; // Tăng step để bù đắp việc update ít hơn
+                            const angle = (bubble.shimmer / 100) * Math.PI * 2;
+                            const radius = 60; // Fixed radius cho performance
+                            const x = Math.cos(angle) * 18; // radius * 0.3 = 60 * 0.3 = 18
+                            const y = Math.sin(angle) * 18;
+
+                            const gradient = new fabric.Gradient({
+                                type: 'radial',
+                                coords: { r1: 0, r2: 48, x1: x, y1: y, x2: x, y2: y }, // r2 = radius * 0.8 = 48
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(255,255,255,0.8)' },
+                                    { offset: 0.7, color: 'rgba(255,255,255,0.3)' },
+                                    { offset: 1, color: 'transparent' },
+                                ],
+                            });
+                            // Không update shimmer khi bubble đang lock để giảm conflict render
+                            if (!bubble.isLocked) {
+                                shimmerCircle.set({ fill: gradient });
+                            }
+                        }
+                    }
+
+                    // Update speed
+                    bubble.speedX = newSpeedX;
+                    bubble.speedY = newSpeedY;
+                });
+
+                // Chỉ renderAll khi thực sự cần thiết
+                if (needsRender) {
+                    canvas.requestRenderAll();
                 }
+                lastTime = currentTime;
             }
 
-            fabricCanvasRef.current.requestRenderAll();
-            animationRef.current = requestAnimationFrame(animate);
+            animationRef = requestAnimationFrame(animate);
         };
+        animationRef = requestAnimationFrame(animate);
+        return {
+            animationRef,
+        };
+    }
 
-        animate();
-    };
 
-    // Sắp xếp bubbles theo alphabet
-    const arrangeBubblesAlphabetically = () => {
-        if (!fabricCanvasRef.current || bubbles.length === 0) return;
-
-        // Kill existing queue if any
-        if (arrangementQueueRef.current) {
-            arrangementQueueRef.current.kill();
-            arrangementQueueRef.current = null;
-        }
-
-        setIsArranging(true);
-        setIsPaused(true);
-
-        // Sort bubbles alphabetically
-        const sortedBubbles = [...bubbles].sort((a, b) => a.userName.localeCompare(b.userName));
-
-        // Calculate grid positions
-        const cols = Math.ceil(Math.sqrt(bubbles.length));
-        const rows = Math.ceil(bubbles.length / cols);
-        const spacing = 140;
-        const startX = 100;
-        const startY = 100;
-
-        // Create arrangement queue
-        arrangementQueueRef.current = queue(async (bubble: Bubble, callback) => {
-            const index = sortedBubbles.indexOf(bubble);
-            const col = index % cols;
-            const row = Math.floor(index / cols);
-
-            const targetX = startX + col * spacing;
-            const targetY = startY + row * spacing;
-
-            // Reset flags
-            bubble.isMarkedDone = false;
-
-            // Animate to position
-            bubble.fabricObject.animate({
-                left: targetX,
-                top: targetY,
-                // angle: 0, // Disabled rotation
-            }, {
-                duration: ANIMATION_CONFIG.ARRANGEMENT_DURATION,
-                easing: ANIMATION_CONFIG.ARRANGEMENT_EASING,
-                onChange: (value: any) => {
-                    if (!bubble.isMarkedDone) {
-                        const elapsedTime = Date.now() - (bubble.fabricObject as any)._animateStartTime;
-                        const progressPercent = elapsedTime / ANIMATION_CONFIG.ARRANGEMENT_DURATION;
-
-                        if (progressPercent >= 0.5) {
-                            bubble.isMarkedDone = true;
-                            callback();
-                        }
-                    }
-                },
-                onComplete: () => {
-                    if (!bubble.isMarkedDone) {
-                        bubble.isMarkedDone = true;
-                        callback();
-                    }
-                }
-            });
-
-            // Set speed to 0 after animation
-            bubble.speedX = 0;
-            bubble.speedY = 0;
-            // bubble.rotationSpeed = 0; // Disabled rotation
-            bubble.isLocked = true;
-        }, ANIMATION_CONFIG.ARRANGEMENT_CONCURRENCY);
-
-        // Add error handling
-        arrangementQueueRef.current.error((err: any, task: any) => {
-            console.error('Arrangement queue error:', err);
-        });
-
-        // Add all bubbles to queue
-        sortedBubbles.forEach(bubble => {
-            arrangementQueueRef.current?.push(bubble);
-        });
-
-        // Check when all animations are done
-        arrangementQueueRef.current.drain(() => {
-            setIsArranging(false);
-        });
-    };
-
-    // Toggle arrangement (pause/resume)
-    const toggleArrangement = () => {
-        // Get current state from the setter functions
-        let currentIsArranging = false;
-        let currentIsPaused = false;
-
-        if (currentIsArranging) return;
-
-        if (currentIsPaused) {
-            // Resume animation
-            setIsPaused(false);
-            setIsArranging(false);
-
-            // Kill arrangement queue
-            if (arrangementQueueRef.current) {
-                arrangementQueueRef.current.kill();
-                arrangementQueueRef.current = null;
-            }
-
-            // Unlock all bubbles and randomize speeds
-            bubbles.forEach(bubble => {
-                bubble.isLocked = false;
-                bubble.isArranging = false;
-                bubble.isMarkedDone = false;
-                bubble.speedX = (Math.random() - 0.5) * 0.8;
-                bubble.speedY = (Math.random() - 0.5) * 0.8;
-                // bubble.rotationSpeed = (Math.random() - 0.5) * 0.02; // Disabled rotation
-            });
-
-            // Start animation loop
-            startAnimation();
-        } else {
-            // Pause and arrange
-            setIsPaused(true);
-            arrangeBubblesAlphabetically();
-        }
-    };
-
-    // Stop animation
-    const stopAnimation = () => {
-        if (animationRef.current) {
-            cancelAnimationFrame(animationRef.current);
-            animationRef.current = 0;
-        }
-    };
-
-    // Cleanup
-    const cleanup = () => {
-        stopAnimation();
-        if (animationQueueRef.current) {
-            animationQueueRef.current.kill();
-            animationQueueRef.current = null;
-        }
-        if (arrangementQueueRef.current) {
-            arrangementQueueRef.current.kill();
-            arrangementQueueRef.current = null;
-        }
-    };
 
     return {
-        animationRef,
-        animationQueueRef,
-        arrangementQueueRef,
-        startAnimation,
-        stopAnimation,
-        arrangeBubblesAlphabetically,
-        toggleArrangement,
-        cleanup,
+        initAnimationQueue,
+        initArrangementQueue,
+        initAnimation,
     };
 };

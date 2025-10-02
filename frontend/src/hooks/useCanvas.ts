@@ -1,133 +1,88 @@
 import * as fabric from 'fabric';
 
-export const useCanvas = (canvasRef: React.RefObject<HTMLCanvasElement | null>) => {
-    const fabricCanvasRef = { current: null as fabric.Canvas | null };
+export const useCanvas = () => {
 
-    // Khởi tạo canvas khi canvasRef.current có sẵn
-    const initializeCanvas = (canvasRefInput: React.RefObject<HTMLCanvasElement | null>) => {
-        if (!canvasRefInput.current) return;
+    const initializeCanvas = (canvasRef: HTMLCanvasElement): {
+        fabricCanvasRef: fabric.Canvas | null;
+        cleanup: () => void;
+    } | null => {
+        let fabricCanvasRef: fabric.Canvas | null = null;
+        if (!canvasRef) {
+            console.warn('Canvas ref not available');
+            return null;
+        }
 
-        const canvas = canvasRefInput.current;
+        const canvas = canvasRef;
         const container = canvas.parentElement;
-        if (!container) return;
+        if (!container) {
+            console.warn('Canvas container not found');
+            return null;
+        }
 
-        // Đảm bảo container đã có kích thước
         const rect = container.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) {
-            // Nếu container chưa có kích thước, đợi một chút
-            setTimeout(() => {
-                if (canvasRefInput.current && canvasRefInput.current.parentElement) {
-                    const newRect = canvasRefInput.current.parentElement.getBoundingClientRect();
-                    if (newRect.width > 0 && newRect.height > 0) {
-                        createFabricCanvas();
-                    }
-                }
-            }, 100);
-            return;
+            console.warn('Container has no dimensions:', rect);
+            return null;
         }
 
+        canvas.width = rect.width;
+        canvas.height = rect.height;
 
-        function createFabricCanvas() {
-            if (!canvasRef.current) {
-                return;
-            }
-
-            const canvas = canvasRef.current;
-            const container = canvas.parentElement;
-            if (!container) {
-                return;
-            }
-
-            const rect = container.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) {
-                return;
-            }
-
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-
-            // Dispose canvas cũ nếu có
-            if (fabricCanvasRef.current) {
-                fabricCanvasRef.current.dispose();
-            }
-
-            try {
-                const fabricCanvas = new fabric.Canvas(canvas, {
-                    backgroundColor: 'transparent',
-                    selection: false,
-                    interactive: false,
-                    renderOnAddRemove: false,
-                });
-
-                fabricCanvasRef.current = fabricCanvas;
-            } catch (error) {
-                console.error('Failed to initialize canvas:', error);
-                return;
-            }
-
-            // Set canvas size
-            const resizeCanvas = () => {
-                if (!canvasRef.current || !fabricCanvasRef.current) return;
-
-                const container = canvasRef.current.parentElement;
-                if (container) {
-                    const rect = container.getBoundingClientRect();
-                    // Set cả canvas element và Fabric.js canvas
-                    canvasRef.current.width = rect.width;
-                    canvasRef.current.height = rect.height;
-                    fabricCanvasRef.current.setDimensions({
-                        width: rect.width,
-                        height: rect.height,
-                    });
-                    fabricCanvasRef.current.renderAll();
-                }
-            };
-
-            // Resize ngay lập tức và sau khi DOM đã render
-            setTimeout(resizeCanvas, 0);
-            window.addEventListener('resize', resizeCanvas);
-
-            // Cleanup function
-            return () => {
-                window.removeEventListener('resize', resizeCanvas);
-                if (fabricCanvasRef.current) {
-                    fabricCanvasRef.current.dispose();
-                    fabricCanvasRef.current = null;
-                }
-            };
+        // Dispose canvas cũ nếu có
+        if (fabricCanvasRef) {
+            (fabricCanvasRef as fabric.Canvas).dispose();
         }
-    };
 
-    // Đảm bảo canvas được resize đúng cách
-    const resizeCanvas = () => {
-        if (!canvasRef.current || !fabricCanvasRef.current) return;
-
-        const container = canvasRef.current.parentElement;
-        if (container) {
-            const rect = container.getBoundingClientRect();
-            // Set cả canvas element và Fabric.js canvas
-            canvasRef.current.width = rect.width;
-            canvasRef.current.height = rect.height;
-            fabricCanvasRef.current.setDimensions({
-                width: rect.width,
-                height: rect.height,
+        try {
+            const fabricCanvas = new fabric.Canvas(canvas, {
+                backgroundColor: 'transparent',
+                selection: false,
+                interactive: false,
+                renderOnAddRemove: false,
             });
-            fabricCanvasRef.current.renderAll();
-        }
-    };
 
-    // Cleanup function
-    const cleanup = () => {
-        if (fabricCanvasRef.current) {
-            fabricCanvasRef.current.dispose();
-            fabricCanvasRef.current = null;
-        }
-    };
+            fabricCanvasRef = fabricCanvas;
 
+        } catch (error) {
+            console.error('Failed to initialize canvas:', error);
+            return null;
+        }
+
+        // Set canvas size
+        const resizeCanvas = () => {
+            if (!canvasRef || !fabricCanvasRef) return;
+
+            const container = canvasRef.parentElement;
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                // Set cả canvas element và Fabric.js canvas
+                canvasRef.width = rect.width;
+                canvasRef.height = rect.height;
+                fabricCanvasRef.setDimensions({
+                    width: rect.width,
+                    height: rect.height,
+                });
+                fabricCanvasRef.renderAll();
+            }
+        };
+
+        // Resize ngay lập tức và sau khi DOM đã render
+        setTimeout(resizeCanvas, 0);
+        window.addEventListener('resize', resizeCanvas);
+
+        // Cleanup function
+        return {
+            fabricCanvasRef,
+            cleanup: () => {
+                window.removeEventListener('resize', resizeCanvas);
+                if (fabricCanvasRef) {
+                    fabricCanvasRef.dispose();
+                    fabricCanvasRef = null;
+                }
+            },
+        };
+    }
     return {
-        fabricCanvasRef,
         initializeCanvas,
-        resizeCanvas,
-        cleanup,
     };
 };
