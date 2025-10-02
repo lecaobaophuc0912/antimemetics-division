@@ -52,7 +52,7 @@ export class AuthService {
             // Tìm user bằng email sử dụng TypeORM
             const user = await this.userRepository.findOne({
                 where: { email: loginDto.email },
-                select: ['id', 'email', 'password', 'name', 'role'], // Chỉ select các field cần thiết
+                select: ['id', 'email', 'password', 'name', 'role', 'avatarUrl'],
             });
 
             if (!user) {
@@ -85,7 +85,7 @@ export class AuthService {
             });
 
             // Trả về user info (không bao gồm password) và token
-            const { ...userWithoutPassword } = user;
+            const { password: _omit, ...userWithoutPassword } = user as any;
 
             return {
                 user: userWithoutPassword,
@@ -166,6 +166,7 @@ export class AuthService {
     }
 
     async logout(refreshToken: string): Promise<{ message: string }> {
+        console.log('refreshToken', refreshToken);
         const hashedToken = this.hashRefreshToken(refreshToken);
         console.log('hashedToken', hashedToken);
         const result = await this.refreshTokenRepository.update(
@@ -200,7 +201,7 @@ export class AuthService {
     async getUserProfile(userId: string) {
         const user = await this.userRepository.findOne({
             where: { id: userId },
-            select: ['id', 'email', 'name', 'role', 'createdAt', 'updatedAt'],
+            select: ['id', 'email', 'name', 'role', 'createdAt', 'updatedAt', 'avatarUrl'],
         });
 
         if (!user) {
@@ -208,6 +209,50 @@ export class AuthService {
         }
 
         return user;
+    }
+
+    async updateUserAvatar(userId: string, avatarUrl: string) {
+        await this.userRepository.update({ id: userId }, { avatarUrl });
+        return { avatarUrl };
+    }
+
+    async updateUserAvatarBinary(
+        userId: string,
+        avatarData: Buffer,
+        mimeType: string,
+        size: number
+    ) {
+        await this.userRepository.update(
+            { id: userId },
+            {
+                avatarData,
+                avatarMimeType: mimeType,
+                avatarSize: size,
+                avatarUrl: null // Clear the file-based URL when using binary storage
+            }
+        );
+        return {
+            message: 'Avatar updated successfully',
+            size,
+            mimeType
+        };
+    }
+
+    async getUserAvatarBinary(userId: string) {
+        const user = await this.userRepository.findOne({
+            where: { id: userId },
+            select: ['avatarData', 'avatarMimeType', 'avatarSize'],
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        return {
+            avatarData: user.avatarData,
+            mimeType: user.avatarMimeType,
+            size: user.avatarSize,
+        };
     }
 
     // Method để hash password

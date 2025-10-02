@@ -74,11 +74,6 @@ export function I18nProvider({ children }: I18nProviderProps) {
             }
 
             const newPath = `/${initialLocale}${currentPath}`;
-            console.log('🔍 newPath:', newPath);
-            console.log('🔍 initialLocale:', initialLocale);
-            console.log('🔍 pathLocale:', pathLocale);
-            console.log('🔍 locales:', locales);
-            console.log('🔍 defaultLocale:', defaultLocale);
             router.replace(newPath);
         }
     }, [router.asPath, hasInitialized, router]);
@@ -93,8 +88,6 @@ export function I18nProvider({ children }: I18nProviderProps) {
         };
 
         const currentLocale = getLocaleFromPath();
-        console.log('🔍 currentLocale:', currentLocale);
-        console.log('🔍 locale:', locale);
         if (currentLocale !== locale) {
             setLocaleState(currentLocale);
             storeLocale(currentLocale);

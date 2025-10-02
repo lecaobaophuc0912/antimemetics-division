@@ -34,6 +34,33 @@ class AuthService {
         const response = await axiosInstance.get<ProfileResponse>('/auth/profile');
         return response.data;
     }
+
+    async uploadAvatar(file: File): Promise<{ data: { avatarUrl: string } }> {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const response = await axiosInstance.post('/auth/avatar', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    }
+
+    async uploadAvatarBinary(file: File): Promise<{ data: { avatarUrl: string } }> {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const response = await axiosInstance.post('/auth/avatar-binary', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    }
+
+    async uploadAvatarFile(file: File): Promise<{ data: { avatarUrl: string } }> {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        const response = await axiosInstance.post('/auth/avatar', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data;
+    }
 }
 
 export const authService = new AuthService();

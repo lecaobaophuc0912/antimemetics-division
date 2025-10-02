@@ -11,21 +11,6 @@ export class AppService {
         private userRepository: Repository<User>,
     ) { }
 
-    private users: User[] = [
-        {
-            id: '1',
-            name: 'John Doe',
-            email: 'john@example.com',
-            password: 'hashedpassword',
-            role: 'user',
-            phone: '1234567890',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            todos: [],
-            refreshTokens: [],
-        },
-    ];
-
     getHello(): string {
         return 'Hello World!';
     }

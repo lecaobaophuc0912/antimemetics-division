@@ -156,8 +156,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const locale = params?.locale as string;
   const theme = params?.theme as string;
 
-  console.log('🔍 locale:', locale, 'theme:', theme);
-
   // Validate locale
   if (!locale || !locales.includes(locale as any)) {
     console.log('❌ Locale không tồn tại:', locale);

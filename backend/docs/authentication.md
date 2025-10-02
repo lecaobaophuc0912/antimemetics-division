@@ -125,4 +125,4 @@ JWT_SECRET=your-secret-key-here
 - `@nestjs/jwt`: JWT functionality
 - `bcryptjs`: Password hashing
 - `class-validator`: Input validation
-- `class-transformer`: Data transformation 
+- `class-transformer`: Data transformation

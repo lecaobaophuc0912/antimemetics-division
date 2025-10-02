@@ -1,3 +1,5 @@
+export { AvatarUpload } from './AvatarUpload';
+export { WebsiteCollapseController } from './WebsiteCollapseController';
 export { TodoForm } from './TodoForm';
 export { TodoCard } from './TodoCard';
 export { EmptyState } from './EmptyState';

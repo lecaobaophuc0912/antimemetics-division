@@ -1,0 +1,74 @@
+# Cursor Rules — Frontend (Next.js + React + next-intl)
+
+Applies to: frontend/**
+
+## Tech & Architecture
+- Next.js 15 (pages router) with React 19. Keep the `src/pages` structure and the atomic components layout: `components/atoms`, `molecules`, `organisms`.
+- i18n via `next-intl` and `I18nProvider`. Locale files live in `i18n/` and dynamic locale routing exists under `src/pages/[locale]/`.
+- Use path alias `@/` for imports from `src/`.
+
+## Runtime & Env
+- Read API endpoints from `process.env.NEXT_PUBLIC_API_BASE_URL` (public, client-safe). Do not hardcode URLs.
+- With cookies/credentials, rely on `withCredentials: true` and CORS rules from backend. Do not access server-only env vars on the client.
+
+## Networking
+- Always use the shared axios instance in `src/services/axios.ts`. Do not create ad-hoc axios instances.
+- Request auth header: read access token from `localStorage` only in the browser (`typeof window !== 'undefined'`).
+- Handle 401 with the built-in refresh flow queue (avoid parallel refresh storms). If refresh fails with `REFRESH_TOKEN_INVALID`, clear storage and redirect to `/login`.
+- Prefer calling endpoints with relative paths (e.g., `/auth/login`); the axios instance will prepend the base URL.
+
+## Services & DTOs
+- All service functions must be fully typed with request/response DTOs sourced from `src/declaration/*`. Do not inline object shapes in service methods.
+- Name service methods by intent and HTTP semantics:
+  - Queries: `getX`, `listX`, `searchX`, `getXStats`
+  - Commands: `createX`, `updateX`, `deleteX`
+- When backend adds new endpoints, add matching DTOs under `src/declaration` first, then implement typed service methods.
+- If an endpoint returns a wrapped payload shaped by the backend interceptor, type it accordingly (e.g., `{ data: T; timestamp: string; path: string }`).
+- Only add a new service file when the domain is distinct (e.g., `todo.ts`, `auth.ts`). Otherwise extend existing services.
+
+## Auth Flow
+- Access token is stored in `localStorage` (key `token`) and attached as `Authorization: Bearer ...`.
+- Refresh token is httpOnly cookie set by the backend. Never store/parse refresh tokens client-side.
+- Use `AuthContext` (`useAuth`) to manage session state. Use the provided `login`/`logout` methods instead of setting storage directly.
+- For protected pages, use `ProtectedRoute` or guard at the page level using `useAuth().isAuthenticated`.
+
+## Error Handling
+- For axios errors, use helpers in `src/services/handle-error.ts` to build user-friendly messages and standardized error objects.
+- Respect backend error format shaped by `HttpExceptionFilter` (fields: `statusCode`, `message`, `error`, `detailCode`, optional `details`).
+- Never leak raw stacks to UI in production. Use `includeStack` only in development.
+
+## i18n
+- Load messages with `next-intl` and keep keys in `i18n/en.json` and `i18n/vi.json` in sync.
+- Use the `useTranslations` hook for UI strings. Do not hardcode user-facing text.
+- Pages in `src/pages/[locale]` must accept and forward `locale` as needed.
+
+## Components & Styling
+- Follow atomic design folders. Keep presentational logic in atoms/molecules, data-fetching and orchestration in organisms/pages.
+- Global styles in `src/pages/globals.css`. Do not inline large CSS blocks in components.
+- Prefer Tailwind utility classes from the existing setup.
+
+## SSR/CSR Safety
+- Guard all browser-only APIs (e.g., `localStorage`, `window`) with `typeof window !== 'undefined'`.
+- Avoid doing auth-sensitive decisions purely via decoded JWT (`src/utils/jwt.ts` is for UX hints only). Treat the server as the source of truth.
+
+## Linting & Formatting
+- Use the repo ESLint config (`eslint-config-next` + TypeScript). Do not disable core rules globally.
+- Match existing formatting and avoid reformatting unrelated files.
+
+## File Placement & Imports
+- Services: `src/services/*` and use central `index.ts` exports.
+- Contexts: `src/contexts/*` and wrap providers in `_app.tsx`.
+- Declarations/types in `src/declaration/*`; import types from there instead of redefining.
+
+## Acceptance Checklist for Frontend Changes
+- [ ] Uses shared axios instance and respects the refresh flow.
+- [ ] No direct handling of refresh tokens; cookies are httpOnly.
+- [ ] Errors surfaced via `handle-error` helpers with user-friendly messages.
+- [ ] i18n applied to all user-facing strings.
+- [ ] No SSR breakage (guards around browser APIs).
+- [ ] Env taken from `NEXT_PUBLIC_*`; no hardcoded hosts.
+- [ ] Lint passes; code follows existing patterns.
+- [ ] New/changed endpoints have DTOs in `src/declaration/*` and typed functions in `src/services/*`.
+
+## Node package manager
+- Using yarn

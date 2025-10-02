@@ -10,7 +10,9 @@
     "test-api": "node test-api.js"
   },
   "dependencies": {
+    "async": "^3.2.6",
     "axios": "^1.11.0",
+    "fabric": "^6.7.1",
     "next": "15.4.5",
     "next-intl": "^3.26.5",
     "react": "19.1.0",
@@ -19,6 +21,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/async": "^3.2.25",
+    "@types/fabric": "^5.3.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

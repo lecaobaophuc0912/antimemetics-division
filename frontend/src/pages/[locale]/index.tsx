@@ -6,6 +6,7 @@ import { useI18n } from '../../contexts/I18nContext';
 import { Navigation } from '../../components/Navigation';
 import Link from "next/link";
 import { useHomeTranslations, useMetaTranslations, useCommonTranslations } from '../../hooks/useTranslations';
+import { WebsiteCollapseController } from '../../components/molecules/WebsiteCollapseController';
 
 export default function Home() {
   const { user, logout } = useAuth();
@@ -32,7 +33,7 @@ export default function Home() {
         <div className="scan-line"></div>
 
         {/* Navigation */}
-        <Navigation user={user} logout={handleLogout} />
+        <Navigation />
 
         {/* Main Content */}
         <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -204,6 +205,9 @@ export default function Home() {
           <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-cyan-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
           <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-500/10 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
         </div>
+
+        {/* Website Collapse Controller */}
+        <WebsiteCollapseController />
       </div>
     </ProtectedRoute>
   );

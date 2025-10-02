@@ -43,7 +43,8 @@
         "logout": "Kết thúc phiên",
         "profile": "Hồ sơ ý thức",
         "consciousness": "Ý THỨC",
-        "disconnect": "NGẮT KẾT NỐI"
+        "disconnect": "NGẮT KẾT NỐI",
+        "messenger": "TIN NHẮN"
     },
     "home": {
         "title": "PHẢN TRUYỀN NHẬN THỨC",
@@ -175,5 +176,18 @@
         "homeDescription": "Giao diện nhận thức lượng tử để đồng bộ ý thức",
         "loginDescription": "Đồng bộ ý thức của bạn với mạng lượng tử",
         "registerDescription": "Tạo hồ sơ ý thức của bạn trong mạng lượng tử"
+    },
+    "profile": {
+        "title": "HỒ SƠ Ý THỨC",
+        "basicInfo": "THÔNG TIN CƠ BẢN",
+        "name": "Tên",
+        "email": "Email",
+        "logout": "NGẮT KẾT NỐI"
+    },
+    "messenger": {
+        "title": "TIN NHẮN",
+        "subtitle": "Kết nối với những người bạn qua những bong bóng xà phòng kỳ diệu",
+        "instructions": "Click vào bong bóng để bắt đầu cuộc trò chuyện",
+        "bubbleInfo": "Các bong bóng sẽ bay tự nhiên và phản chiếu ánh sáng"
     }
 }

@@ -18,6 +18,7 @@ export class LoginResponseDto {
         email: string;
         name: string;
         role: string;
+        avatarUrl?: string | null;
     };
     accessToken: string;
     refreshToken: string;

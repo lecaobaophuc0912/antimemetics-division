@@ -11,6 +11,7 @@ export interface LoginResponse {
             id: string;
             email: string;
             name?: string;
+            avatarUrl?: string | null;
         };
     }
 }
@@ -39,6 +40,7 @@ export interface UserProfile {
     id: string;
     email: string;
     name?: string;
+    avatarUrl?: string | null;
 }
 
 export interface ProfileResponse {

@@ -32,6 +32,18 @@ export class User {
     @Index()
     phone: string | null;
 
+    @Column({ type: 'varchar', length: 512, nullable: true })
+    avatarUrl: string | null;
+
+    @Column({ type: 'bytea', nullable: true })
+    avatarData: Buffer | null;
+
+    @Column({ type: 'varchar', length: 50, nullable: true })
+    avatarMimeType: string | null;
+
+    @Column({ type: 'integer', nullable: true })
+    avatarSize: number | null;
+
     @CreateDateColumn()
     createdAt: Date;
 

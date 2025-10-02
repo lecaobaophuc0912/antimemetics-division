@@ -4,17 +4,14 @@ import { useRouter } from 'next/router';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useI18n } from '../contexts/I18nContext';
 import { useNavigationTranslations, useCommonTranslations } from '../hooks/useTranslations';
+import { Avatar } from './atoms/Avatar';
+import { useAvatar } from '../hooks/useAvatar';
+import { useAuth } from '../contexts/AuthContext';
 
-interface NavigationProps {
-  user?: {
-    email: string;
-  } | null;
-  logout: () => void;
-}
-
-export function Navigation({ user, logout }: NavigationProps) {
+export function Navigation() {
   const router = useRouter();
   const { locale } = useI18n();
+  const { user, logout } = useAuth();
   const t = useNavigationTranslations();
   const tc = useCommonTranslations();
 
@@ -27,13 +24,15 @@ export function Navigation({ user, logout }: NavigationProps) {
     return router.pathname === `/${locale}${path}` || router.pathname === path;
   };
 
+  const avatarSource = useAvatar({ avatarUrl: user?.avatarUrl });
+
   return (
     <nav className="glass border-b border-green-500/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-cyan-600 rounded-lg flex items-center justify-center neon-glow">
+            <Link href={`/${locale}`} className="w-8 h-8 bg-gradient-to-r from-green-500 to-cyan-600 rounded-lg flex items-center justify-center neon-glow">
               <Image
                 src="/antimemetics-division-logo.png"
                 alt={tc('antimemeticsLogo')}
@@ -41,10 +40,10 @@ export function Navigation({ user, logout }: NavigationProps) {
                 height={24}
                 className="object-contain filter brightness-110 contrast-125"
               />
-            </div>
-            <span className="text-lg font-bold gradient-text">
+            </Link>
+            <Link href={`/${locale}`} className="text-lg font-bold gradient-text">
               {tc('antimemeticsDivision')}
-            </span>
+            </Link>
           </div>
 
           {/* Navigation Links */}
@@ -67,17 +66,40 @@ export function Navigation({ user, logout }: NavigationProps) {
             >
               {t('todos')}
             </Link>
+            <Link
+              href={`/${locale}/messenger`}
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive('/messenger')
+                ? 'bg-purple-600 text-white neon-glow-accent'
+                : 'text-purple-300 hover:text-purple-200 hover:bg-purple-900/50'
+                }`}
+            >
+              {t('messenger')}
+            </Link>
           </div>
 
-          {/* User Info, Language Switcher & Logout */}
+          {/* Language switcher, user name linking to profile, and disconnect */}
           <div className="flex items-center space-x-4">
-            {/* Language Switcher */}
             <LanguageSwitcher />
-
-            <div className="hidden sm:flex items-center space-x-3 text-sm text-green-300">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse neon-glow"></div>
-              <span>{t('consciousness')}: <span className="text-cyan-300 font-medium terminal-text">{user?.email}</span></span>
-            </div>
+            <Link
+              href={`/${locale}/profile`}
+              className="flex items-center"
+              title={t('profile')}
+            >
+              <Avatar
+                src={avatarSource.displaySrc}
+                alt="avatar"
+                size="sm"
+                className="border border-green-500/40"
+                defaultText={user?.name || user?.email || '?'}
+              />
+            </Link>
+            <Link
+              href={`/${locale}/profile`}
+              className="hidden sm:inline-block px-3 py-1 rounded-lg text-sm font-medium text-green-300 hover:text-white hover:bg-green-900/50 transition-all duration-200"
+              title={t('profile')}
+            >
+              {user?.name || user?.email}
+            </Link>
             <button
               onClick={logout}
               className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 neon-glow-secondary"

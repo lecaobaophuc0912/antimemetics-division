@@ -1,0 +1,95 @@
+# Cursor Rules — Backend (NestJS + TypeORM)
+
+Applies to: backend/**
+
+## Tech & Architecture
+- Use NestJS v11 with TypeScript (moduleResolution: NodeNext) and TypeORM v0.3.x (DataSource pattern, Repository injection).
+- Database: PostgreSQL. Do not rely on `synchronize` for schema changes; use migrations via the configured CLI and `src/config/data-source.ts`.
+- Project structure conventions:
+  - Entities: `src/config/*.entity.ts`
+  - DTOs: `src/dto/*`
+  - Controllers: `src/controllers/*`
+  - Services: `src/services/*`
+  - Guards/Interceptors/Filters/Pipes in their respective folders
+  - Global config with `@nestjs/config` (isGlobal: true)
+
+## API & Routing
+- Controllers expose these route groups:
+  - `auth/*` for authentication and token lifecycle
+  - `todo/*` for todo CRUD, search, filter, and stats
+- Keep `AppController` minimal. Do not introduce unrelated endpoints under `api/`.
+- Return shapes:
+  - Non-paginated: return the raw data; `TransformInterceptor` wraps it as `{ data, timestamp, path }`.
+  - Paginated lists: return an object with keys `data, total, page, limit, totalPages` (and optional `filters`). The interceptor must NOT double-wrap these.
+
+## Validation & DTOs
+- Use `class-validator` and `class-transformer` on all inputs. `ValidationPipe` is global with `transform: true`, `whitelist: true`, `forbidNonWhitelisted: true`, and 422 error code.
+- For query date fields, use `TransformDate()` from `src/decorators/transform-date.decorator`.
+- For pagination and filtering (todos), adhere to `TodoQueryDto` including `sortBy` and `sortOrder` restrictions.
+
+## AuthN & AuthZ
+- Protect authenticated routes with `AuthGuard` (JWT Bearer from `Authorization` header). Do not read tokens from cookies for access tokens.
+- Use `TodoOwnershipGuard` for routes operating on a specific todo id.
+- Enforce service-level authorization in `TodoService` methods (`getTodo`, `updateTodo`, `deleteTodo`). Do not bypass these checks in new code.
+
+## Tokens & Cookies
+- Access tokens: sign with `JWT_EXPIRES_IN` from env.
+- Refresh tokens: generate random strings, store only SHA-256 hashes in DB (`RefreshToken`), rotate on refresh, and revoke old tokens.
+- Set refresh token cookie as httpOnly, `sameSite: 'strict'`, and `secure: NODE_ENV === 'production'`. Use `res.cookie('refreshToken', ...)` consistently.
+
+## Error Handling
+- Throw Nest exceptions (`NotFoundException`, `UnauthorizedException`, `ForbiddenException`, etc.). Avoid returning error-like objects.
+- Let `HttpExceptionFilter` format responses. If throwing generic `Error`, prefer clear messages that map to `ExceptionType` (e.g., include "Failed to fetch todos" for query failures).
+- Do not leak sensitive info in error messages or logs.
+
+## Database & Migrations
+- Never enable `synchronize` in production. For schema changes:
+  1) Update entities
+  2) Generate migration via npm scripts (`migration:generate`)
+  3) Review/commit migration files
+  4) Apply with `migration:run`
+- Use repositories and QueryBuilder. For multi-step writes, use transactions via a `QueryRunner` (see `createTodo`).
+
+## Service Logic
+- Follow existing patterns:
+  - `TodoService.getTodosByUser`: search across `title`, `description`, `code`, filter on `status`, `priority`, date range, and enforce allowed sort fields.
+  - `TodoService.getTodoStats`: compute totals, overdue by `status = pending`, and group-by stats.
+- When updating todos, convert `dueDate` to `Date` objects in services.
+
+## Config & Env
+Required env variables (loaded via `@nestjs/config` or dotenv):
+- `PORT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `COOKIE_MAX_AGE`
+- `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
+Do not hardcode these. Access via `ConfigService` where possible.
+
+## CORS & Client Integration
+- CORS is enabled for `http://localhost:3001` with `credentials: true`. If adding environments, update CORS origins accordingly and ensure cookies still work.
+
+## Logging
+- Use Nest `Logger`. Avoid logging secrets, tokens, or PII. Remove or guard debug `console.log` statements.
+
+## Style & Linting
+- Respect existing ESLint and Prettier configs (`.prettierrc`, `eslint.config.mjs`).
+  - 4-space indentation, single quotes, semicolons, print width 80.
+  - Avoid `any` where feasible even though it is not enforced; prefer explicit types on public APIs.
+- Do not reformat unrelated files. Match local style when editing.
+
+## Testing
+- Add or update unit/e2e tests when modifying controllers/services with externally visible behavior.
+
+## File Placement & Imports
+- Use absolute imports from `src/...` consistently (moduleResolution: NodeNext).
+- Place new classes in their established folders and export via their module where applicable.
+
+## Acceptance Checklist for New Backend Changes
+- [ ] Inputs validated via DTOs; no extra fields pass through `whitelist`.
+- [ ] Auth guard and, if applicable, ownership guard applied.
+- [ ] Service-level authorization enforced.
+- [ ] Error handling uses Nest exceptions; no sensitive data in messages.
+- [ ] Response shape matches interceptor expectations.
+- [ ] DB interactions use Repository/QueryBuilder; migrations updated if schema changed.
+- [ ] Env/config accessed via `ConfigService`; no hardcoded secrets.
+- [ ] Lint passes; code matches existing formatting.
+
+## Node package manager
+- Using yarn

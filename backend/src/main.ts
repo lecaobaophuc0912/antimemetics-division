@@ -4,6 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import cookieParser from 'cookie-parser';
 import { ConfigService } from '@nestjs/config';
+import * as express from 'express';
+import { join } from 'path';
+import { getCorsConfigFromEnv } from './config/cors.environment';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -21,11 +24,11 @@ async function bootstrap() {
         }),
     );
 
-    app.enableCors({
-        origin: 'http://localhost:3001',
-        credentials: true, // ← Quan trọng!
-    });
+    // Cấu hình CORS với nhiều domain
     const configService = app.get(ConfigService);
+    const corsConfig = getCorsConfigFromEnv(configService);
+    app.enableCors(corsConfig);
+    app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
     console.log('PORT', configService.get('PORT'));
     await app.listen(configService.get('PORT') ?? 3000);
     console.log(`Application is running on: ${await app.getUrl()}`);

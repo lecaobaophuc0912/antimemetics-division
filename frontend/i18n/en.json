@@ -43,7 +43,8 @@
         "logout": "Terminate Session",
         "profile": "Consciousness Profile",
         "consciousness": "CONSCIOUSNESS",
-        "disconnect": "DISCONNECT"
+        "disconnect": "DISCONNECT",
+        "messenger": "MESSENGER"
     },
     "home": {
         "title": "ANTIMEMETICS DIVISION",
@@ -175,5 +176,18 @@
         "homeDescription": "Quantum memetics interface for consciousness synchronization",
         "loginDescription": "Synchronize your consciousness with the quantum network",
         "registerDescription": "Create your consciousness profile in the quantum network"
+    },
+    "profile": {
+        "title": "CONSCIOUSNESS PROFILE",
+        "basicInfo": "BASIC INFORMATION",
+        "name": "Name",
+        "email": "Email",
+        "logout": "DISCONNECT"
+    },
+    "messenger": {
+        "title": "MESSENGER",
+        "subtitle": "Connect with friends through magical soap bubbles",
+        "instructions": "Click on bubbles to start conversations",
+        "bubbleInfo": "Bubbles will float naturally and reflect light"
     }
 }

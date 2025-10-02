@@ -14,6 +14,7 @@ import { TodoOwnershipGuard } from './guards/todo-ownership.guard';
 import { RefreshToken } from './config/refresh-token.entity';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ImageService } from './services/image.service';
 
 @Module({
     imports: [
@@ -40,6 +41,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         TodoService,
         TodoOwnershipGuard,
         LoggingInterceptor,
+        ImageService,
     ],
 })
 export class AppModule { }
