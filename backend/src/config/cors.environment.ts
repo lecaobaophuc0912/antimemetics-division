@@ -28,6 +28,8 @@ export const getCorsConfigFromEnv = (configService: ConfigService) => {
     const origins = [...new Set([...defaultOrigins, ...corsOrigins])];
     console.log('origins', origins);
 
+    console.log('crediential', typeof configService.get<boolean>('CORS_CREDENTIALS'));
+
     const corsConfig: CorsConfig = {
         origin: function (origin, callback) {
             // Nếu không có origin (same-origin request), cho phép
@@ -89,12 +91,11 @@ export const getCorsConfigFromEnv = (configService: ConfigService) => {
             console.log(`CORS blocked: ${origin} not in allowed origins:`, origins);
             callback(new Error(`Origin ${origin} not allowed by CORS`));
         },
-        credentials: configService.get<boolean>('CORS_CREDENTIALS') ?? true,
+        credentials: Boolean(configService.get<boolean>('CORS_CREDENTIALS')) ?? true,
         methods: configService.get<string>('CORS_METHODS')?.split(',') ?? [
             'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'
         ],
         maxAge: configService.get<number>('CORS_MAX_AGE') ?? 3600,
     }
-
     return corsConfig;
 };

@@ -175,7 +175,9 @@
         "registerTitle": "Initialize Memetics Link - Antimemetics Division",
         "homeDescription": "Quantum memetics interface for consciousness synchronization",
         "loginDescription": "Synchronize your consciousness with the quantum network",
-        "registerDescription": "Create your consciousness profile in the quantum network"
+        "registerDescription": "Create your consciousness profile in the quantum network",
+        "messengerTitle": "Chat",
+        "messengerDescription": "Conversation with personel"
     },
     "profile": {
         "title": "CONSCIOUSNESS PROFILE",

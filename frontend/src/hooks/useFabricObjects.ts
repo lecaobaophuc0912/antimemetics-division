@@ -446,6 +446,7 @@ export const useFabricObjects = () => {
             (group as any).bubbleId = index;
             (group as any).userName = mockUser.name;
             (group as any).userId = mockUser.id;
+            (group as any).avatarUrl = mockUser.avatarUrl;
 
             // Đảm bảo group có kích thước đúng
             group.setCoords();

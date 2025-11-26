@@ -175,7 +175,9 @@
         "registerTitle": "Khởi Tạo Liên Kết Nhận Thức - Phản truyền nhận thức",
         "homeDescription": "Giao diện nhận thức lượng tử để đồng bộ ý thức",
         "loginDescription": "Đồng bộ ý thức của bạn với mạng lượng tử",
-        "registerDescription": "Tạo hồ sơ ý thức của bạn trong mạng lượng tử"
+        "registerDescription": "Tạo hồ sơ ý thức của bạn trong mạng lượng tử",
+        "messengerTitle": "Chat",
+        "messengerDescription": "Trao đổi với nhân sự"
     },
     "profile": {
         "title": "HỒ SƠ Ý THỨC",

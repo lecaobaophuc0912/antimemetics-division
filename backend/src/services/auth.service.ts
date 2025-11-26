@@ -56,6 +56,7 @@ export class AuthService {
             });
 
             if (!user) {
+                console.log('test - 1');
                 throw new NotFoundException('User not found');
             }
 
@@ -78,7 +79,6 @@ export class AuthService {
                 email: user.email,
                 role: user.role,
             };
-            console.log('EXPIRED_TIME_ACCESS_TOKEN', this.configService.get('JWT_EXPIRES_IN'));
             // Tạo JWT token
             const accessToken = this.jwtService.sign(payload, {
                 expiresIn: this.configService.get('JWT_EXPIRES_IN'),

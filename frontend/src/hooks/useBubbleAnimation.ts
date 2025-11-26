@@ -150,173 +150,177 @@ export const useBubbleAnimation = () => {
         let animationRef;
 
         const animate = (currentTime: number) => {
-            const canvas = fabricCanvasRef;
-            let lastTime = 0;
-            const frameInterval = 1000 / ANIMATION_CONFIG.TARGET_FPS;
+            try {
+                const canvas = fabricCanvasRef;
+                let lastTime = 0;
+                const frameInterval = 1000 / ANIMATION_CONFIG.TARGET_FPS;
 
-            if (currentTime - lastTime >= frameInterval) {
-                const rect = canvas.getElement().getBoundingClientRect()
+                if (currentTime - lastTime >= frameInterval) {
+                    const rect = canvas.getElement().getBoundingClientRect()
 
-                // Batch operations để giảm số lần renderAll
-                let needsRender = false;
+                    // Batch operations để giảm số lần renderAll
+                    let needsRender = false;
 
-                bubbles.forEach(bubble => {
-                    const obj = bubble.fabricObject;
-                    // Nếu bubble đang bị lock do arrangement, không cập nhật physics cho bubble đó
-                    if (bubble.isLocked) {
-                        return;
-                    }
+                    bubbles.forEach(bubble => {
+                        const obj = bubble.fabricObject;
+                        // Nếu bubble đang bị lock do arrangement, không cập nhật physics cho bubble đó
+                        if (bubble.isLocked) {
+                            return;
+                        }
 
-                    let newX = (obj.left || 0) + bubble.speedX;
-                    let newY = (obj.top || 0) + bubble.speedY;
-                    let newSpeedX = bubble.speedX;
-                    let newSpeedY = bubble.speedY;
+                        let newX = (obj.left || 0) + bubble.speedX;
+                        let newY = (obj.top || 0) + bubble.speedY;
+                        let newSpeedX = bubble.speedX;
+                        let newSpeedY = bubble.speedY;
 
-                    // Di chuyển trước, sau đó hiệu chỉnh nếu vượt biên theo bounding box thật
-                    // Comment rotation để giảm lag
-                    obj.set({ left: newX, top: newY /*, angle: (obj.angle || 0) + bubble.rotationSpeed */ });
-                    obj.setCoords();
-                    needsRender = true;
-                    const br = obj.getBoundingRect();
-                    const epsilon = 0.5;
-                    let adjustX = 0;
-                    let adjustY = 0;
-                    let bouncedX = false;
-                    let bouncedY = false;
+                        // Di chuyển trước, sau đó hiệu chỉnh nếu vượt biên theo bounding box thật
+                        // Comment rotation để giảm lag
+                        obj.set({ left: newX, top: newY /*, angle: (obj.angle || 0) + bubble.rotationSpeed */ });
+                        obj.setCoords();
+                        needsRender = true;
+                        const br = obj.getBoundingRect();
+                        const epsilon = 0.5;
+                        let adjustX = 0;
+                        let adjustY = 0;
+                        let bouncedX = false;
+                        let bouncedY = false;
 
-                    if (br.left < 0) {
-                        adjustX = -br.left + epsilon;
-                        bouncedX = true;
-                    } else if (br.left + br.width > rect.width) {
-                        adjustX = rect.width - (br.left + br.width) - epsilon;
-                        bouncedX = true;
-                    }
+                        if (br.left < 0) {
+                            adjustX = -br.left + epsilon;
+                            bouncedX = true;
+                        } else if (br.left + br.width > rect.width) {
+                            adjustX = rect.width - (br.left + br.width) - epsilon;
+                            bouncedX = true;
+                        }
 
-                    if (br.top < 0) {
-                        adjustY = -br.top + epsilon;
-                        bouncedY = true;
-                    } else if (br.top + br.height > rect.height) {
-                        adjustY = rect.height - (br.top + br.height) - epsilon;
-                        bouncedY = true;
-                    }
+                        if (br.top < 0) {
+                            adjustY = -br.top + epsilon;
+                            bouncedY = true;
+                        } else if (br.top + br.height > rect.height) {
+                            adjustY = rect.height - (br.top + br.height) - epsilon;
+                            bouncedY = true;
+                        }
 
-                    if (adjustX !== 0 || adjustY !== 0) {
-                        obj.set({ left: (obj.left || 0) + adjustX, top: (obj.top || 0) + adjustY });
-                        if (bouncedX) newSpeedX = -newSpeedX;
-                        if (bouncedY) newSpeedY = -newSpeedY;
-                    }
+                        if (adjustX !== 0 || adjustY !== 0) {
+                            obj.set({ left: (obj.left || 0) + adjustX, top: (obj.top || 0) + adjustY });
+                            if (bouncedX) newSpeedX = -newSpeedX;
+                            if (bouncedY) newSpeedY = -newSpeedY;
+                        }
 
-                    // Kiểm tra va chạm với các bubble khác (tối ưu performance)
-                    const currentBubble = bubble;
-                    const currentRadius = 60; // Fixed radius for all bubbles (120/2)
-                    const currentX = obj.left || 0;
-                    const currentY = obj.top || 0;
+                        // Kiểm tra va chạm với các bubble khác (tối ưu performance)
+                        const currentBubble = bubble;
+                        const currentRadius = 60; // Fixed radius for all bubbles (120/2)
+                        const currentX = obj.left || 0;
+                        const currentY = obj.top || 0;
 
-                    // Chỉ kiểm tra với bubbles có index lớn hơn để tránh kiểm tra trùng lặp
-                    for (let j = bubbles.indexOf(bubble) + 1; j < bubbles.length; j++) {
-                        const otherBubble = bubbles[j];
-                        // Bỏ qua va chạm nếu otherBubble đang lock (để giữ vị trí hàng)
-                        if (otherBubble.isLocked) continue;
-                        const otherObj = otherBubble.fabricObject;
-                        const otherX = otherObj.left || 0;
-                        const otherY = otherObj.top || 0;
+                        // Chỉ kiểm tra với bubbles có index lớn hơn để tránh kiểm tra trùng lặp
+                        for (let j = bubbles.indexOf(bubble) + 1; j < bubbles.length; j++) {
+                            const otherBubble = bubbles[j];
+                            // Bỏ qua va chạm nếu otherBubble đang lock (để giữ vị trí hàng)
+                            if (otherBubble.isLocked) continue;
+                            const otherObj = otherBubble.fabricObject;
+                            const otherX = otherObj.left || 0;
+                            const otherY = otherObj.top || 0;
 
-                        // Quick distance check trước khi tính sqrt
-                        const dx = currentX - otherX;
-                        const dy = currentY - otherY;
-                        const distanceSquared = dx * dx + dy * dy;
-                        const minDistance = 125; // currentRadius + otherRadius + 5px padding
-                        const minDistanceSquared = minDistance * minDistance;
+                            // Quick distance check trước khi tính sqrt
+                            const dx = currentX - otherX;
+                            const dy = currentY - otherY;
+                            const distanceSquared = dx * dx + dy * dy;
+                            const minDistance = 125; // currentRadius + otherRadius + 5px padding
+                            const minDistanceSquared = minDistance * minDistance;
 
-                        if (distanceSquared < minDistanceSquared) {
-                            const distance = Math.sqrt(distanceSquared);
-                            if (distance > 0) { // Tránh chia cho 0
-                                const angle = Math.atan2(dy, dx);
-                                const overlap = minDistance - distance;
+                            if (distanceSquared < minDistanceSquared) {
+                                const distance = Math.sqrt(distanceSquared);
+                                if (distance > 0) { // Tránh chia cho 0
+                                    const angle = Math.atan2(dy, dx);
+                                    const overlap = minDistance - distance;
 
-                                // Đẩy 2 bubble ra xa nhau
-                                const pushX = Math.cos(angle) * (overlap * 0.5);
-                                const pushY = Math.sin(angle) * (overlap * 0.5);
+                                    // Đẩy 2 bubble ra xa nhau
+                                    const pushX = Math.cos(angle) * (overlap * 0.5);
+                                    const pushY = Math.sin(angle) * (overlap * 0.5);
 
-                                // Cập nhật vị trí
-                                obj.set({
-                                    left: currentX + pushX,
-                                    top: currentY + pushY
-                                });
-                                otherObj.set({
-                                    left: otherX - pushX,
-                                    top: otherY - pushY
-                                });
+                                    // Cập nhật vị trí
+                                    obj.set({
+                                        left: currentX + pushX,
+                                        top: currentY + pushY
+                                    });
+                                    otherObj.set({
+                                        left: otherX - pushX,
+                                        top: otherY - pushY
+                                    });
 
-                                // Tính toán phản lực (simplified)
-                                const relativeVelocityX = newSpeedX - otherBubble.speedX;
-                                const relativeVelocityY = newSpeedY - otherBubble.speedY;
-                                const velocityAlongNormal = relativeVelocityX * Math.cos(angle) + relativeVelocityY * Math.sin(angle);
+                                    // Tính toán phản lực (simplified)
+                                    const relativeVelocityX = newSpeedX - otherBubble.speedX;
+                                    const relativeVelocityY = newSpeedY - otherBubble.speedY;
+                                    const velocityAlongNormal = relativeVelocityX * Math.cos(angle) + relativeVelocityY * Math.sin(angle);
 
-                                if (velocityAlongNormal < 0) {
-                                    const restitution = 0.8;
-                                    const impulse = -(1 + restitution) * velocityAlongNormal;
-                                    const impulseX = impulse * Math.cos(angle);
-                                    const impulseY = impulse * Math.sin(angle);
+                                    if (velocityAlongNormal < 0) {
+                                        const restitution = 0.8;
+                                        const impulse = -(1 + restitution) * velocityAlongNormal;
+                                        const impulseX = impulse * Math.cos(angle);
+                                        const impulseY = impulse * Math.sin(angle);
 
-                                    newSpeedX += impulseX;
-                                    newSpeedY += impulseY;
-                                    otherBubble.speedX -= impulseX;
-                                    otherBubble.speedY -= impulseY;
+                                        newSpeedX += impulseX;
+                                        newSpeedY += impulseY;
+                                        otherBubble.speedX -= impulseX;
+                                        otherBubble.speedY -= impulseY;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // Add natural movement (giảm tần suất)
-                    if (Math.random() < 0.05) {
-                        newSpeedX += (Math.random() - 0.5) * 0.01;
-                        newSpeedY += (Math.random() - 0.5) * 0.01;
-                    }
+                        // Add natural movement (giảm tần suất)
+                        if (Math.random() < 0.05) {
+                            newSpeedX += (Math.random() - 0.5) * 0.01;
+                            newSpeedY += (Math.random() - 0.5) * 0.01;
+                        }
 
-                    // Limit speed
-                    newSpeedX = Math.max(-1.5, Math.min(1.5, newSpeedX));
-                    newSpeedY = Math.max(-1.5, Math.min(1.5, newSpeedY));
+                        // Limit speed
+                        newSpeedX = Math.max(-1.5, Math.min(1.5, newSpeedX));
+                        newSpeedY = Math.max(-1.5, Math.min(1.5, newSpeedY));
 
-                    // Update shimmer effect - tối ưu performance với update ít thường xuyên hơn
-                    if (Math.random() < ANIMATION_CONFIG.SHIMMER_UPDATE_RATE) { // Update shimmer theo config
-                        const shimmerCircle = obj.getObjects()?.find(o => (o as any).name === 'shimmer');
-                        if (shimmerCircle) {
-                            bubble.shimmer = (bubble.shimmer + 2) % 100; // Tăng step để bù đắp việc update ít hơn
-                            const angle = (bubble.shimmer / 100) * Math.PI * 2;
-                            const radius = 60; // Fixed radius cho performance
-                            const x = Math.cos(angle) * 18; // radius * 0.3 = 60 * 0.3 = 18
-                            const y = Math.sin(angle) * 18;
+                        // Update shimmer effect - tối ưu performance với update ít thường xuyên hơn
+                        if (Math.random() < ANIMATION_CONFIG.SHIMMER_UPDATE_RATE) { // Update shimmer theo config
+                            const shimmerCircle = obj.getObjects()?.find(o => (o as any).name === 'shimmer');
+                            if (shimmerCircle) {
+                                bubble.shimmer = (bubble.shimmer + 2) % 100; // Tăng step để bù đắp việc update ít hơn
+                                const angle = (bubble.shimmer / 100) * Math.PI * 2;
+                                const radius = 60; // Fixed radius cho performance
+                                const x = Math.cos(angle) * 18; // radius * 0.3 = 60 * 0.3 = 18
+                                const y = Math.sin(angle) * 18;
 
-                            const gradient = new fabric.Gradient({
-                                type: 'radial',
-                                coords: { r1: 0, r2: 48, x1: x, y1: y, x2: x, y2: y }, // r2 = radius * 0.8 = 48
-                                colorStops: [
-                                    { offset: 0, color: 'rgba(255,255,255,0.8)' },
-                                    { offset: 0.7, color: 'rgba(255,255,255,0.3)' },
-                                    { offset: 1, color: 'transparent' },
-                                ],
-                            });
-                            // Không update shimmer khi bubble đang lock để giảm conflict render
-                            if (!bubble.isLocked) {
-                                shimmerCircle.set({ fill: gradient });
+                                const gradient = new fabric.Gradient({
+                                    type: 'radial',
+                                    coords: { r1: 0, r2: 48, x1: x, y1: y, x2: x, y2: y }, // r2 = radius * 0.8 = 48
+                                    colorStops: [
+                                        { offset: 0, color: 'rgba(255,255,255,0.8)' },
+                                        { offset: 0.7, color: 'rgba(255,255,255,0.3)' },
+                                        { offset: 1, color: 'transparent' },
+                                    ],
+                                });
+                                // Không update shimmer khi bubble đang lock để giảm conflict render
+                                if (!bubble.isLocked) {
+                                    shimmerCircle.set({ fill: gradient });
+                                }
                             }
                         }
+
+                        // Update speed
+                        bubble.speedX = newSpeedX;
+                        bubble.speedY = newSpeedY;
+                    });
+
+                    // Chỉ renderAll khi thực sự cần thiết
+                    if (needsRender) {
+                        canvas.requestRenderAll();
                     }
-
-                    // Update speed
-                    bubble.speedX = newSpeedX;
-                    bubble.speedY = newSpeedY;
-                });
-
-                // Chỉ renderAll khi thực sự cần thiết
-                if (needsRender) {
-                    canvas.requestRenderAll();
+                    lastTime = currentTime;
                 }
-                lastTime = currentTime;
-            }
 
-            animationRef = requestAnimationFrame(animate);
+                animationRef = requestAnimationFrame(animate);
+            } catch (ex) {
+                console.error(ex);
+            }
         };
         animationRef = requestAnimationFrame(animate);
         return {

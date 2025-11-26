@@ -26,7 +26,7 @@ export class AuthController {
         const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
         this.cookieOptions = {
             httpOnly: true,
-            secure: isProduction,
+            secure: true,
             sameSite: isProduction ? 'strict' : 'none',
             maxAge: parseInt(this.configService.get<string>('COOKIE_MAX_AGE') || '2592000000'), // 30 days
             path: '/',

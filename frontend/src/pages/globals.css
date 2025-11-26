@@ -137,7 +137,6 @@ body {
     text-shadow: 0 0 5px var(--primary);
     white-space: nowrap;
     overflow: hidden;
-    border-right: 2px solid var(--primary);
   }
 
   .cyber-grid {
